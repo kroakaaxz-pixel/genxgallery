@@ -567,6 +567,127 @@
   color: var(--color-accent);
 }
 
+/* Orders */
+.ordersSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.orderDetail {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  padding: var(--space-xl);
+}
+
+.orderDetailHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-xl);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.orderDetailTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.orderDetailActions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.orderDetailGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: var(--space-md);
+}
+
+.orderDetailCard {
+  background: var(--color-cream);
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  padding: var(--space-lg);
+}
+
+.orderDetailCardTitle {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-ink-muted);
+  margin-bottom: var(--space-md);
+}
+
+.orderInfoList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.orderInfoList p {
+  margin: 0;
+}
+
+.orderNotes {
+  font-size: 0.8rem;
+  color: var(--color-accent-text);
+  font-style: italic;
+  margin-top: var(--space-sm);
+}
+
+.orderEditFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.orderTotalRow {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-xl);
+  padding: var(--space-lg);
+  margin-top: var(--space-md);
+  background: var(--color-cream-dark);
+  border-radius: 2px;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.orderTotalValue {
+  color: var(--color-accent);
+}
+
+.statusProcessing {
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.statusShipped {
+  border-color: #7c3aed;
+  color: #7c3aed;
+}
+
+.statusDelivered {
+  border-color: #2D6A4F;
+  color: #2D6A4F;
+}
+
+.statusCancelled {
+  border-color: #C23B22;
+  color: #C23B22;
+}
+
+.statusReturned {
+  border-color: #C5A55A;
+  color: #C5A55A;
+}
+
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
@@ -591,6 +712,10 @@
   }
 
   .chartsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .orderDetailGrid {
     grid-template-columns: 1fr;
   }
 }

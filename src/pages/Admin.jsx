@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { products as initialProducts, categories, productStatuses, frameSizes, getDiscountedPrice } from '../data/products';
+import { initialOrders, orderStatuses, computeAnalytics } from '../data/orders';
 import { ADMIN_PASSWORD } from '../config/admin';
 import { formatPrice } from '../utils/currency';
 import styles from './Admin.module.css';
@@ -12,35 +13,7 @@ import {
 
 const STORAGE_KEY = 'gxg_admin_auth';
 const PRODUCTS_KEY = 'gxg_admin_products';
-
-const monthlySalesData = [
-  { month: 'Jan', revenue: 42500, orders: 28, returns: 2, cancellations: 1 },
-  { month: 'Feb', revenue: 38200, orders: 24, returns: 1, cancellations: 3 },
-  { month: 'Mar', revenue: 56800, orders: 38, returns: 3, cancellations: 2 },
-  { month: 'Apr', revenue: 51200, orders: 34, returns: 4, cancellations: 1 },
-  { month: 'May', revenue: 63400, orders: 42, returns: 2, cancellations: 2 },
-  { month: 'Jun', revenue: 58900, orders: 39, returns: 5, cancellations: 3 },
-  { month: 'Jul', revenue: 71200, orders: 47, returns: 3, cancellations: 2 },
-  { month: 'Aug', revenue: 67500, orders: 44, returns: 4, cancellations: 1 },
-  { month: 'Sep', revenue: 74800, orders: 50, returns: 2, cancellations: 4 },
-  { month: 'Oct', revenue: 82100, orders: 55, returns: 6, cancellations: 2 },
-  { month: 'Nov', revenue: 95400, orders: 64, returns: 3, cancellations: 3 },
-  { month: 'Dec', revenue: 108200, orders: 72, returns: 5, cancellations: 4 },
-];
-
-const categorySalesData = [
-  { name: 'Cars', value: 124500, fill: '#C23B22' },
-  { name: 'Anime', value: 98700, fill: '#6B4C9A' },
-  { name: 'Posters', value: 87600, fill: '#2D6A4F' },
-];
-
-const topProducts = [
-  { name: 'Skyline at Dusk', units: 42, revenue: 84000 },
-  { name: 'Neon District', units: 38, revenue: 76000 },
-  { name: 'Vintage Travel', units: 31, revenue: 52700 },
-  { name: 'Cinema Noir', units: 28, revenue: 44800 },
-  { name: 'Spirit Forest', units: 25, revenue: 52500 },
-];
+const ORDERS_KEY = 'gxg_admin_orders';
 
 function getStoredAuth() {
   try {
@@ -58,9 +31,23 @@ function getStoredProducts() {
   return null;
 }
 
+function getStoredOrders() {
+  try {
+    const stored = sessionStorage.getItem(ORDERS_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch { /* ignore */ }
+  return null;
+}
+
 function storeProducts(prods) {
   try {
     sessionStorage.setItem(PRODUCTS_KEY, JSON.stringify(prods));
+  } catch { /* ignore */ }
+}
+
+function storeOrders(orders) {
+  try {
+    sessionStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
   } catch { /* ignore */ }
 }
 
@@ -82,16 +69,24 @@ export default function Admin() {
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [products, setProducts] = useState(() => getStoredProducts() ?? initialProducts);
+  const [orders, setOrders] = useState(() => getStoredOrders() ?? initialOrders);
   const [editingId, setEditingId] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({ ...emptyProduct });
   const [filterStatus, setFilterStatus] = useState('all');
   const [activeTab, setActiveTab] = useState('products');
 
-  // Persist products to session storage whenever they change
-  useEffect(() => {
-    storeProducts(products);
-  }, [products]);
+  // Orders state
+  const [orderFilter, setOrderFilter] = useState('all');
+  const [viewingOrder, setViewingOrder] = useState(null);
+  const [editingOrder, setEditingOrder] = useState(null);
+  const [orderEditForm, setOrderEditForm] = useState(null);
+
+  // Persist to session storage
+  useEffect(() => { storeProducts(products); }, [products]);
+  useEffect(() => { storeOrders(orders); }, [orders]);
+
+  const analytics = computeAnalytics(orders);
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -109,6 +104,7 @@ export default function Admin() {
     sessionStorage.removeItem(STORAGE_KEY);
   };
 
+  // ─── Product handlers ───
   const handleEdit = (product) => {
     setEditingId(product.id);
     setFormData({ ...product });
@@ -129,11 +125,8 @@ export default function Admin() {
 
   const handleSave = () => {
     if (!formData.name || !formData.price) return;
-
     if (editingId) {
-      setProducts((prev) =>
-        prev.map((p) => (p.id === editingId ? { ...formData, id: editingId } : p))
-      );
+      setProducts((prev) => prev.map((p) => (p.id === editingId ? { ...formData, id: editingId } : p)));
     } else {
       setProducts((prev) => [...prev, { ...formData, id: Date.now() }]);
     }
@@ -148,9 +141,7 @@ export default function Admin() {
   };
 
   const handleStatusToggle = (id, newStatus) => {
-    setProducts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p))
-    );
+    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p)));
   };
 
   const handleFieldChange = (field, value) => {
@@ -166,6 +157,96 @@ export default function Admin() {
     });
   };
 
+  // ─── Order handlers ───
+  const handleOrderStatusChange = (orderId, newStatus) => {
+    setOrders((prev) => prev.map((o) => {
+      if (o.id !== orderId) return o;
+      const updated = { ...o, status: newStatus };
+      if (newStatus === 'Delivered' && !o.deliveredDate) {
+        updated.deliveredDate = new Date().toISOString().split('T')[0];
+      }
+      return updated;
+    }));
+    if (viewingOrder?.id === orderId) {
+      setViewingOrder((prev) => {
+        if (!prev) return prev;
+        const updated = { ...prev, status: newStatus };
+        if (newStatus === 'Delivered' && !prev.deliveredDate) {
+          updated.deliveredDate = new Date().toISOString().split('T')[0];
+        }
+        return updated;
+      });
+    }
+  };
+
+  const handleViewOrder = (order) => {
+    setViewingOrder(order);
+    setEditingOrder(null);
+    setOrderEditForm(null);
+  };
+
+  const handleEditOrder = (order) => {
+    setEditingOrder(order.id);
+    setOrderEditForm({ ...order, items: order.items.map((item) => ({ ...item })) });
+    setViewingOrder(null);
+  };
+
+  const handleOrderFieldChange = (field, value) => {
+    setOrderEditForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleOrderAddressChange = (field, value) => {
+    setOrderEditForm((prev) => ({
+      ...prev,
+      address: { ...prev.address, [field]: value },
+    }));
+  };
+
+  const handleOrderItemChange = (index, field, value) => {
+    setOrderEditForm((prev) => {
+      const items = [...prev.items];
+      items[index] = { ...items[index], [field]: value };
+      // Recalculate unit price if size/texture changed
+      if (field === 'size') {
+        const sizePrice = field === 'size'
+          ? frameSizes.find((s) => s.id === value)?.price || items[index].unitPrice
+          : items[index].unitPrice;
+        const textureUpcharge = items[index].texture === 'glossy' ? 200 : 0;
+        items[index].unitPrice = sizePrice + textureUpcharge;
+      }
+      if (field === 'texture') {
+        const basePrice = frameSizes.find((s) => s.id === items[index].size)?.price || 0;
+        const textureUpcharge = value === 'glossy' ? 200 : 0;
+        items[index].unitPrice = basePrice + textureUpcharge;
+      }
+      if (field === 'quantity') {
+        items[index].quantity = Math.max(1, Number(value));
+      }
+      const newTotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+      return { ...prev, items, total: newTotal };
+    });
+  };
+
+  const handleRemoveOrderItem = (index) => {
+    setOrderEditForm((prev) => {
+      const items = prev.items.filter((_, i) => i !== index);
+      const newTotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+      return { ...prev, items, total: newTotal };
+    });
+  };
+
+  const handleSaveOrder = () => {
+    if (!orderEditForm) return;
+    setOrders((prev) => prev.map((o) => (o.id === orderEditForm.id ? orderEditForm : o)));
+    setEditingOrder(null);
+    setOrderEditForm(null);
+  };
+
+  const handleCancelOrderEdit = () => {
+    setEditingOrder(null);
+    setOrderEditForm(null);
+  };
+
   // Login screen
   if (!authenticated) {
     return (
@@ -173,7 +254,7 @@ export default function Admin() {
         <div className={styles.loginContainer}>
           <div className={styles.loginCard}>
             <h1 className={styles.loginTitle}>Admin Panel</h1>
-            <p className={styles.loginSubtitle}>Gen X Gallery — Product Management</p>
+            <p className={styles.loginSubtitle}>Gen X Gallery — Store Management</p>
             <form onSubmit={handleLogin} className={styles.loginForm}>
               <input
                 type="password"
@@ -195,6 +276,10 @@ export default function Admin() {
   const filteredProducts = filterStatus === 'all'
     ? products
     : products.filter((p) => p.status === filterStatus);
+
+  const filteredOrders = orderFilter === 'all'
+    ? orders
+    : orders.filter((o) => o.status === orderFilter);
 
   return (
     <main className={styles.page}>
@@ -221,6 +306,12 @@ export default function Admin() {
             Products ({products.length})
           </button>
           <button
+            onClick={() => setActiveTab('orders')}
+            className={`${styles.tab} ${activeTab === 'orders' ? styles.tabActive : ''}`}
+          >
+            Orders ({orders.length})
+          </button>
+          <button
             onClick={() => setActiveTab('analytics')}
             className={`${styles.tab} ${activeTab === 'analytics' ? styles.tabActive : ''}`}
           >
@@ -228,9 +319,9 @@ export default function Admin() {
           </button>
         </div>
 
+        {/* ═══════════ PRODUCTS TAB ═══════════ */}
         {activeTab === 'products' && (
           <>
-            {/* Status filter */}
             <div className={styles.filterBar}>
               {['all', ...productStatuses].map((status) => (
                 <button
@@ -240,108 +331,58 @@ export default function Admin() {
                 >
                   {status === 'all' ? 'All' : status}
                   <span className={styles.filterCount}>
-                    {status === 'all'
-                      ? products.length
-                      : products.filter((p) => p.status === status).length}
+                    {status === 'all' ? products.length : products.filter((p) => p.status === status).length}
                   </span>
                 </button>
               ))}
             </div>
 
-            {/* Add/Edit form */}
             {(showAddForm || editingId) && (
               <div className={styles.formCard}>
                 <h2 className={styles.formTitle}>{editingId ? 'Edit Product' : 'Add New Product'}</h2>
                 <div className={styles.formGrid}>
                   <div className={styles.formField}>
                     <label>Name</label>
-                    <input
-                      value={formData.name}
-                      onChange={(e) => handleFieldChange('name', e.target.value)}
-                      className={styles.input}
-                    />
+                    <input value={formData.name} onChange={(e) => handleFieldChange('name', e.target.value)} className={styles.input} />
                   </div>
                   <div className={styles.formField}>
                     <label>Category</label>
-                    <select
-                      value={formData.category}
-                      onChange={(e) => handleFieldChange('category', e.target.value)}
-                      className={styles.input}
-                    >
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
+                    <select value={formData.category} onChange={(e) => handleFieldChange('category', e.target.value)} className={styles.input}>
+                      {categories.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
                     </select>
                   </div>
                   <div className={styles.formField}>
                     <label>Price (₹)</label>
-                    <input
-                      type="number"
-                      value={formData.price}
-                      onChange={(e) => handleFieldChange('price', Number(e.target.value))}
-                      className={styles.input}
-                    />
+                    <input type="number" value={formData.price} onChange={(e) => handleFieldChange('price', Number(e.target.value))} className={styles.input} />
                   </div>
                   <div className={styles.formField}>
                     <label>Discount %</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="90"
-                      value={formData.discountPercent || 0}
-                      onChange={(e) => handleFieldChange('discountPercent', Number(e.target.value))}
-                      className={styles.input}
-                      placeholder="0"
-                    />
+                    <input type="number" min="0" max="90" value={formData.discountPercent || 0} onChange={(e) => handleFieldChange('discountPercent', Number(e.target.value))} className={styles.input} placeholder="0" />
                   </div>
                   <div className={styles.formField}>
                     <label>Status</label>
-                    <select
-                      value={formData.status}
-                      onChange={(e) => handleFieldChange('status', e.target.value)}
-                      className={styles.input}
-                    >
-                      {productStatuses.map((s) => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
+                    <select value={formData.status} onChange={(e) => handleFieldChange('status', e.target.value)} className={styles.input}>
+                      {productStatuses.map((s) => (<option key={s} value={s}>{s}</option>))}
                     </select>
                   </div>
                   <div className={styles.formField}>
                     <label>Image URL</label>
-                    <input
-                      value={formData.image}
-                      onChange={(e) => handleFieldChange('image', e.target.value)}
-                      className={styles.input}
-                    />
+                    <input value={formData.image} onChange={(e) => handleFieldChange('image', e.target.value)} className={styles.input} />
                   </div>
                   <div className={styles.formField}>
                     <label>Badge (optional)</label>
-                    <input
-                      value={formData.badge || ''}
-                      onChange={(e) => handleFieldChange('badge', e.target.value)}
-                      className={styles.input}
-                      placeholder="e.g. New, Limited"
-                    />
+                    <input value={formData.badge || ''} onChange={(e) => handleFieldChange('badge', e.target.value)} className={styles.input} placeholder="e.g. New, Limited" />
                   </div>
                   <div className={`${styles.formField} ${styles.formFieldFull}`}>
                     <label>Description</label>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) => handleFieldChange('description', e.target.value)}
-                      className={styles.input}
-                      rows={3}
-                    />
+                    <textarea value={formData.description} onChange={(e) => handleFieldChange('description', e.target.value)} className={styles.input} rows={3} />
                   </div>
                   <div className={`${styles.formField} ${styles.formFieldFull}`}>
                     <label>Available Sizes</label>
                     <div className={styles.sizeCheckboxes}>
                       {frameSizes.map((size) => (
                         <label key={size.id} className={styles.checkboxLabel}>
-                          <input
-                            type="checkbox"
-                            checked={formData.sizes.includes(size.id)}
-                            onChange={() => handleSizeToggle(size.id)}
-                          />
+                          <input type="checkbox" checked={formData.sizes.includes(size.id)} onChange={() => handleSizeToggle(size.id)} />
                           {size.label}
                         </label>
                       ))}
@@ -355,7 +396,6 @@ export default function Admin() {
               </div>
             )}
 
-            {/* Product table */}
             <div className={styles.tableWrap}>
               <table className={styles.table}>
                 <thead>
@@ -371,46 +411,24 @@ export default function Admin() {
                 <tbody>
                   {filteredProducts.map((product) => (
                     <tr key={product.id} className={styles.row}>
-                      <td>
-                        <img
-                          src={product.image}
-                          alt={product.name}
-                          className={styles.tableImage}
-                        />
-                      </td>
+                      <td><img src={product.image} alt={product.name} className={styles.tableImage} /></td>
                       <td className={styles.cellName}>
                         {product.name}
-                        {product.badge && (
-                          <span className={styles.tableBadge}>{product.badge}</span>
-                        )}
+                        {product.badge && <span className={styles.tableBadge}>{product.badge}</span>}
                       </td>
                       <td className={styles.cellCategory}>{product.category}</td>
                       <td className={styles.cellPrice}>
                         {product.discountPercent > 0 ? (
                           <>
-                            <span style={{ textDecoration: 'line-through', opacity: 0.5, marginRight: '6px' }}>
-                              {formatPrice(product.price)}
-                            </span>
-                            <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>
-                              {formatPrice(getDiscountedPrice(product))}
-                            </span>
-                            <span style={{ fontSize: '0.7rem', color: 'var(--color-accent)', marginLeft: '4px' }}>
-                              -{product.discountPercent}%
-                            </span>
+                            <span style={{ textDecoration: 'line-through', opacity: 0.5, marginRight: '6px' }}>{formatPrice(product.price)}</span>
+                            <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>{formatPrice(getDiscountedPrice(product))}</span>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--color-accent)', marginLeft: '4px' }}>-{product.discountPercent}%</span>
                           </>
-                        ) : (
-                          formatPrice(product.price)
-                        )}
+                        ) : formatPrice(product.price)}
                       </td>
                       <td>
-                        <select
-                          value={product.status}
-                          onChange={(e) => handleStatusToggle(product.id, e.target.value)}
-                          className={`${styles.statusSelect} ${styles[`status${product.status.replace(/\s/g, '')}`]}`}
-                        >
-                          {productStatuses.map((s) => (
-                            <option key={s} value={s}>{s}</option>
-                          ))}
+                        <select value={product.status} onChange={(e) => handleStatusToggle(product.id, e.target.value)} className={`${styles.statusSelect} ${styles[`status${product.status.replace(/\s/g, '')}`]}`}>
+                          {productStatuses.map((s) => (<option key={s} value={s}>{s}</option>))}
                         </select>
                       </td>
                       <td className={styles.cellActions}>
@@ -420,9 +438,7 @@ export default function Admin() {
                     </tr>
                   ))}
                   {filteredProducts.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className={styles.emptyRow}>No products match this filter.</td>
-                    </tr>
+                    <tr><td colSpan={6} className={styles.emptyRow}>No products match this filter.</td></tr>
                   )}
                 </tbody>
               </table>
@@ -430,38 +446,276 @@ export default function Admin() {
           </>
         )}
 
+        {/* ═══════════ ORDERS TAB ═══════════ */}
+        {activeTab === 'orders' && (
+          <div className={styles.ordersSection}>
+            {/* Status filter */}
+            <div className={styles.filterBar}>
+              {['all', ...orderStatuses].map((status) => (
+                <button
+                  key={status}
+                  onClick={() => { setOrderFilter(status); setViewingOrder(null); setEditingOrder(null); }}
+                  className={`${styles.filterBtn} ${orderFilter === status ? styles.filterBtnActive : ''}`}
+                >
+                  {status === 'all' ? 'All' : status}
+                  <span className={styles.filterCount}>
+                    {status === 'all' ? orders.length : orders.filter((o) => o.status === status).length}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Order detail / edit view */}
+            {(viewingOrder || editingOrder) && (() => {
+              const order = editingOrder ? orderEditForm : viewingOrder;
+              if (!order) return null;
+              const isEditing = editingOrder === order.id;
+              return (
+                <div className={styles.orderDetail}>
+                  <div className={styles.orderDetailHeader}>
+                    <h2 className={styles.orderDetailTitle}>
+                      {isEditing ? `Edit ${order.id}` : `Order ${order.id}`}
+                    </h2>
+                    <div className={styles.orderDetailActions}>
+                      {isEditing ? (
+                        <>
+                          <button onClick={handleSaveOrder} className={styles.saveBtn}>Save Changes</button>
+                          <button onClick={handleCancelOrderEdit} className={styles.cancelBtn}>Cancel</button>
+                        </>
+                      ) : (
+                        <>
+                          <button onClick={() => handleEditOrder(order)} className={styles.editBtn}>Edit Order</button>
+                          <button onClick={() => setViewingOrder(null)} className={styles.cancelBtn}>Close</button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className={styles.orderDetailGrid}>
+                    {/* Customer info */}
+                    <div className={styles.orderDetailCard}>
+                      <h3 className={styles.orderDetailCardTitle}>Customer</h3>
+                      {isEditing ? (
+                        <div className={styles.orderEditFields}>
+                          <div className={styles.formField}>
+                            <label>Name</label>
+                            <input value={order.customerName} onChange={(e) => handleOrderFieldChange('customerName', e.target.value)} className={styles.input} />
+                          </div>
+                          <div className={styles.formField}>
+                            <label>Email</label>
+                            <input value={order.email} onChange={(e) => handleOrderFieldChange('email', e.target.value)} className={styles.input} />
+                          </div>
+                          <div className={styles.formField}>
+                            <label>Phone</label>
+                            <input value={order.phone} onChange={(e) => handleOrderFieldChange('phone', e.target.value)} className={styles.input} />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className={styles.orderInfoList}>
+                          <p><strong>{order.customerName}</strong></p>
+                          <p>{order.email}</p>
+                          <p>{order.phone}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Address */}
+                    <div className={styles.orderDetailCard}>
+                      <h3 className={styles.orderDetailCardTitle}>Delivery Address</h3>
+                      {isEditing ? (
+                        <div className={styles.orderEditFields}>
+                          <div className={styles.formField}>
+                            <label>Street</label>
+                            <input value={order.address.street} onChange={(e) => handleOrderAddressChange('street', e.target.value)} className={styles.input} />
+                          </div>
+                          <div className={styles.formField}>
+                            <label>City</label>
+                            <input value={order.address.city} onChange={(e) => handleOrderAddressChange('city', e.target.value)} className={styles.input} />
+                          </div>
+                          <div className={styles.formField}>
+                            <label>Pincode</label>
+                            <input value={order.address.pincode} onChange={(e) => handleOrderAddressChange('pincode', e.target.value)} className={styles.input} />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className={styles.orderInfoList}>
+                          <p>{order.address.street}</p>
+                          <p>{order.address.city}, {order.address.state} {order.address.pincode}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Status & Dates */}
+                    <div className={styles.orderDetailCard}>
+                      <h3 className={styles.orderDetailCardTitle}>Status</h3>
+                      <div className={styles.orderInfoList}>
+                        <div className={styles.formField}>
+                          <label>Status</label>
+                          <select
+                            value={order.status}
+                            onChange={(e) => handleOrderStatusChange(order.id, e.target.value)}
+                            className={`${styles.statusSelect} ${styles[`status${order.status.replace(/\s/g, '')}`]}`}
+                            disabled={isEditing}
+                          >
+                            {orderStatuses.map((s) => (<option key={s} value={s}>{s}</option>))}
+                          </select>
+                        </div>
+                        <p>Placed: <strong>{order.date}</strong></p>
+                        {order.deliveredDate && <p>Delivered: <strong>{order.deliveredDate}</strong></p>}
+                        {order.notes && <p className={styles.orderNotes}>Note: {order.notes}</p>}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Items */}
+                  <div className={styles.orderDetailCard} style={{ marginTop: 'var(--space-lg)' }}>
+                    <h3 className={styles.orderDetailCardTitle}>Items</h3>
+                    <div className={styles.tableWrap}>
+                      <table className={styles.table}>
+                        <thead>
+                          <tr>
+                            <th>Product</th>
+                            <th>Size</th>
+                            <th>Frame</th>
+                            <th>Finish</th>
+                            <th>Qty</th>
+                            <th>Unit Price</th>
+                            <th>Subtotal</th>
+                            {isEditing && <th></th>}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {order.items.map((item, idx) => (
+                            <tr key={idx} className={styles.row}>
+                              <td className={styles.cellName}>{item.productName}</td>
+                              <td>
+                                {isEditing ? (
+                                  <select value={item.size} onChange={(e) => handleOrderItemChange(idx, 'size', e.target.value)} className={styles.statusSelect}>
+                                    {frameSizes.map((s) => (<option key={s.id} value={s.id}>{s.label}</option>))}
+                                  </select>
+                                ) : item.sizeLabel}
+                              </td>
+                              <td>
+                                {isEditing ? (
+                                  <select value={item.material} onChange={(e) => handleOrderItemChange(idx, 'material', e.target.value)} className={styles.statusSelect}>
+                                    <option value="black">Black</option>
+                                    <option value="white">White</option>
+                                    <option value="silver">Silver</option>
+                                  </select>
+                                ) : item.materialName}
+                              </td>
+                              <td>
+                                {isEditing ? (
+                                  <select value={item.texture} onChange={(e) => handleOrderItemChange(idx, 'texture', e.target.value)} className={styles.statusSelect}>
+                                    <option value="matte">Matte</option>
+                                    <option value="glossy">Glossy</option>
+                                  </select>
+                                ) : item.textureName}
+                              </td>
+                              <td>
+                                {isEditing ? (
+                                  <input type="number" min="1" value={item.quantity} onChange={(e) => handleOrderItemChange(idx, 'quantity', e.target.value)} className={styles.statusSelect} style={{ width: '50px' }} />
+                                ) : item.quantity}
+                              </td>
+                              <td>{formatPrice(item.unitPrice)}</td>
+                              <td className={styles.cellPrice}>{formatPrice(item.unitPrice * item.quantity)}</td>
+                              {isEditing && (
+                                <td>
+                                  <button onClick={() => handleRemoveOrderItem(idx)} className={styles.deleteBtn}>Remove</button>
+                                </td>
+                              )}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className={styles.orderTotalRow}>
+                      <span>Total</span>
+                      <span className={styles.orderTotalValue}>{formatPrice(order.total)}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Orders table */}
+            {!viewingOrder && !editingOrder && (
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Order ID</th>
+                      <th>Customer</th>
+                      <th>Date</th>
+                      <th>Items</th>
+                      <th>Total</th>
+                      <th>Status</th>
+                      <th className={styles.thActions}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredOrders.map((order) => (
+                      <tr key={order.id} className={styles.row}>
+                        <td className={styles.cellName}>{order.id}</td>
+                        <td>{order.customerName}</td>
+                        <td>{order.date}</td>
+                        <td>{order.items.length} item{order.items.length > 1 ? 's' : ''}</td>
+                        <td className={styles.cellPrice}>{formatPrice(order.total)}</td>
+                        <td>
+                          <select
+                            value={order.status}
+                            onChange={(e) => handleOrderStatusChange(order.id, e.target.value)}
+                            className={`${styles.statusSelect} ${styles[`status${order.status.replace(/\s/g, '')}`]}`}
+                          >
+                            {orderStatuses.map((s) => (<option key={s} value={s}>{s}</option>))}
+                          </select>
+                        </td>
+                        <td className={styles.cellActions}>
+                          <button onClick={() => handleViewOrder(order)} className={styles.editBtn}>View</button>
+                        </td>
+                      </tr>
+                    ))}
+                    {filteredOrders.length === 0 && (
+                      <tr><td colSpan={7} className={styles.emptyRow}>No orders match this filter.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══════════ ANALYTICS TAB ═══════════ */}
         {activeTab === 'analytics' && (
           <div className={styles.analytics}>
-            {/* KPI Cards */}
             <div className={styles.kpiGrid}>
               <div className={styles.kpiCard}>
                 <p className={styles.kpiLabel}>Total Revenue</p>
-                <p className={styles.kpiValue}>{formatPrice(840300)}</p>
-                <p className={styles.kpiChange} style={{ color: '#2D6A4F' }}>+18.2% vs last year</p>
+                <p className={styles.kpiValue}>{formatPrice(analytics.totalRevenue)}</p>
+                <p className={styles.kpiChange} style={{ color: '#2D6A4F' }}>From {analytics.activeOrders} active orders</p>
               </div>
               <div className={styles.kpiCard}>
-                <p className={styles.kpiLabel}>Total Orders</p>
-                <p className={styles.kpiValue}>535</p>
-                <p className={styles.kpiChange} style={{ color: '#2D6A4F' }}>+12.4% vs last year</p>
+                <p className={styles.kpiLabel}>Net Profit</p>
+                <p className={styles.kpiValue}>{formatPrice(analytics.profit)}</p>
+                <p className={styles.kpiChange} style={{ color: '#2D6A4F' }}>After {formatPrice(analytics.totalCost)} COGS (42%)</p>
               </div>
               <div className={styles.kpiCard}>
                 <p className={styles.kpiLabel}>Returns</p>
-                <p className={styles.kpiValue}>40</p>
-                <p className={styles.kpiChange} style={{ color: '#C23B22' }}>7.5% return rate</p>
+                <p className={styles.kpiValue}>{analytics.returnedCount}</p>
+                <p className={styles.kpiChange} style={{ color: '#C23B22' }}>{analytics.returnRate}% rate · {formatPrice(analytics.lossFromReturns)} lost</p>
               </div>
               <div className={styles.kpiCard}>
                 <p className={styles.kpiLabel}>Cancellations</p>
-                <p className={styles.kpiValue}>28</p>
-                <p className={styles.kpiChange} style={{ color: '#C23B22' }}>5.2% cancel rate</p>
+                <p className={styles.kpiValue}>{analytics.cancelledCount}</p>
+                <p className={styles.kpiChange} style={{ color: '#C23B22' }}>{analytics.cancelRate}% rate · {formatPrice(analytics.lossFromCancellations)} lost</p>
               </div>
             </div>
 
-            {/* Charts */}
             <div className={styles.chartsGrid}>
               <div className={styles.chartCard}>
-                <h3 className={styles.chartTitle}>Monthly Revenue</h3>
+                <h3 className={styles.chartTitle}>Monthly Revenue (Active Orders)</h3>
                 <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={monthlySalesData}>
+                  <AreaChart data={analytics.monthlySalesData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                     <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                     <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`} />
@@ -474,7 +728,7 @@ export default function Admin() {
               <div className={styles.chartCard}>
                 <h3 className={styles.chartTitle}>Orders vs Returns vs Cancellations</h3>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={monthlySalesData}>
+                  <BarChart data={analytics.monthlySalesData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
                     <XAxis dataKey="month" tick={{ fontSize: 12 }} />
                     <YAxis tick={{ fontSize: 12 }} />
@@ -494,7 +748,7 @@ export default function Admin() {
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
-                      data={categorySalesData}
+                      data={analytics.categorySalesData}
                       cx="50%"
                       cy="50%"
                       innerRadius={70}
@@ -503,7 +757,7 @@ export default function Admin() {
                       dataKey="value"
                       label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                     >
-                      {categorySalesData.map((entry, index) => (
+                      {analytics.categorySalesData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.fill} />
                       ))}
                     </Pie>
@@ -515,7 +769,7 @@ export default function Admin() {
               <div className={styles.chartCard}>
                 <h3 className={styles.chartTitle}>Top Products</h3>
                 <div className={styles.topProductsList}>
-                  {topProducts.map((item, i) => (
+                  {analytics.topProducts.map((item, i) => (
                     <div key={i} className={styles.topProductRow}>
                       <span className={styles.topProductRank}>#{i + 1}</span>
                       <div className={styles.topProductInfo}>
