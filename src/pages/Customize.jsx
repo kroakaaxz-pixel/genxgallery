@@ -91,24 +91,63 @@ export default function Customize() {
 
   const getFrameDimensions = () => {
     const size = frameSizes.find((s) => s.id === selectedSize);
-    if (!size) return { width: 200, height: 260 };
+    if (!size) return { width: 200, height: 280 };
 
+    // Scale both sizes relative to A4 as the "full" preview size.
+    // A4 (8×12) fills the preview area; A5 (6×8) renders proportionally smaller.
+    const a4Size = frameSizes.find((s) => s.id === 'a4');
     const maxPreviewWidth = 280;
-    const maxPreviewHeight = 360;
-    const printRatio = size.width / size.height;
+    const maxPreviewHeight = 380;
 
-    let width = maxPreviewWidth;
-    let height = maxPreviewWidth / printRatio;
-    if (height > maxPreviewHeight) {
-      height = maxPreviewHeight;
-      width = maxPreviewHeight * printRatio;
+    // First compute A4 dimensions as the baseline
+    const a4Ratio = a4Size.width / a4Size.height;
+    let a4Width = maxPreviewWidth;
+    let a4Height = maxPreviewWidth / a4Ratio;
+    if (a4Height > maxPreviewHeight) {
+      a4Height = maxPreviewHeight;
+      a4Width = maxPreviewHeight * a4Ratio;
     }
+
+    // Scale the selected size relative to A4 based on actual print area
+    const scaleFactor = (size.width * size.height) / (a4Size.width * a4Size.height);
+    const width = a4Width * Math.sqrt(scaleFactor);
+    const height = a4Height * Math.sqrt(scaleFactor);
 
     return { width: Math.round(width), height: Math.round(height) };
   };
 
   const frameDims = getFrameDimensions();
   const material = frameMaterials.find((m) => m.id === selectedMaterial);
+
+  // Material-specific frame styles
+  const getMaterialStyle = () => {
+    const base = {
+      width: frameDims.width + 32,
+      height: frameDims.height + 32,
+    };
+    switch (selectedMaterial) {
+      case 'black':
+        return {
+          ...base,
+          background: 'linear-gradient(145deg, #2a2a2a 0%, #1A1A1A 30%, #111111 70%, #1a1a1a 100%)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 0 rgba(0,0,0,0.3), inset 1px 0 0 rgba(255,255,255,0.04), inset -1px 0 0 rgba(0,0,0,0.2)',
+        };
+      case 'white':
+        return {
+          ...base,
+          background: 'linear-gradient(145deg, #ffffff 0%, #f8f8f8 30%, #efefef 70%, #f5f5f5 100%)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.8), inset 0 -1px 0 rgba(0,0,0,0.08), inset 1px 0 0 rgba(255,255,255,0.6), inset -1px 0 0 rgba(0,0,0,0.05)',
+        };
+      case 'silver':
+        return {
+          ...base,
+          background: 'linear-gradient(145deg, #d8d8d8 0%, #e8e8e8 15%, #f5f5f5 30%, #c8c8c8 50%, #b0b0b0 70%, #c5c5c5 85%, #d5d5d5 100%)',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.7), inset 0 -1px 0 rgba(0,0,0,0.15), inset 1px 0 0 rgba(255,255,255,0.5), inset -1px 0 0 rgba(0,0,0,0.1)',
+        };
+      default:
+        return { ...base, background: material?.hex || '#1A1A1A' };
+    }
+  };
 
   const frameRatio = frameDims.width / frameDims.height;
   const ratioDiff = Math.abs(sourceRatio - frameRatio);
@@ -130,11 +169,7 @@ export default function Customize() {
             <div className={styles.previewFrame}>
               <div
                 className={styles.frame}
-                style={{
-                  backgroundColor: material?.hex || '#1A1A1A',
-                  width: frameDims.width + 32,
-                  height: frameDims.height + 32,
-                }}
+                style={getMaterialStyle()}
               >
                 <div
                   className={`${styles.frameInner} ${selectedTexture === 'glossy' ? styles.glossy : styles.matte}`}
