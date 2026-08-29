@@ -1,0 +1,139 @@
+.page {
+  padding-top: var(--header-height);
+}
+
+.heroBanner {
+  position: relative;
+  height: 50vh;
+  min-height: 360px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+}
+
+.heroBg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 8s ease;
+}
+
+.heroBanner:hover .heroBg {
+  transform: scale(1.03);
+}
+
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(26, 26, 26, 0.85) 0%,
+    rgba(26, 26, 26, 0.3) 50%,
+    rgba(26, 26, 26, 0.1) 100%
+  );
+}
+
+.heroContent {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  padding: var(--space-3xl);
+}
+
+.heroNumber {
+  font-family: var(--font-display);
+  font-size: 5rem;
+  font-weight: 700;
+  opacity: 0.15;
+  color: white;
+  line-height: 1;
+  position: absolute;
+  top: -60px;
+  left: var(--space-3xl);
+}
+
+.heroLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-accent-text);
+  margin-bottom: var(--space-md);
+}
+
+.heroTitle {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  color: white;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-sm);
+}
+
+.heroTagline {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.7);
+  max-width: 400px;
+}
+
+/* Content */
+.content {
+  padding: var(--space-4xl) 0;
+}
+
+.intro {
+  max-width: 640px;
+  margin-bottom: var(--space-3xl);
+}
+
+.introText {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: var(--color-ink-light);
+}
+
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-xl);
+}
+
+@media (max-width: 1024px) {
+  .productGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .heroBanner {
+    height: 35vh;
+    min-height: 240px;
+  }
+
+  .heroContent {
+    padding: var(--space-lg);
+  }
+
+  .heroNumber {
+    font-size: 2.5rem;
+    left: var(--space-lg);
+    top: -32px;
+  }
+
+  .heroTagline {
+    font-size: 0.95rem;
+  }
+
+  .content {
+    padding: var(--space-2xl) 0;
+  }
+
+  .intro {
+    margin-bottom: var(--space-xl);
+  }
+
+  .productGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-lg);
+  }
+}

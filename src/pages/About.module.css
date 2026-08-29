@@ -1,0 +1,135 @@
+.page {
+  padding-top: var(--header-height);
+}
+
+.hero {
+  position: relative;
+  height: 60vh;
+  min-height: 400px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.heroBg {
+  position: absolute;
+  inset: 0;
+  background: var(--color-ink);
+  background-image: url('https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=1400&h=800&fit=crop');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.4;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  color: white;
+  padding: var(--space-2xl);
+}
+
+.heroLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  margin-bottom: var(--space-md);
+}
+
+.heroTitle {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* Content */
+.content {
+  padding: var(--space-5xl) 0;
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4xl);
+}
+
+.textBlock {
+  max-width: 520px;
+}
+
+.textBlock h2 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: var(--space-xl);
+  letter-spacing: -0.02em;
+}
+
+.textBlock p {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--color-ink-light);
+  margin-bottom: var(--space-lg);
+}
+
+.pullquote {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--color-ink);
+  border-left: 3px solid var(--color-accent);
+  padding-left: var(--space-xl);
+  margin: var(--space-3xl) 0;
+}
+
+.values {
+  padding: var(--space-5xl) 0;
+  background: var(--color-cream-dark);
+}
+
+.valuesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-2xl);
+}
+
+.valueCard {
+  padding: var(--space-xl);
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  background: var(--color-cream);
+}
+
+.valueNumber {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  margin-bottom: var(--space-md);
+}
+
+.valueTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: var(--space-sm);
+}
+
+.valueText {
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--color-ink-light);
+}
+
+@media (max-width: 768px) {
+  .contentGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-2xl);
+  }
+
+  .valuesGrid {
+    grid-template-columns: 1fr;
+  }
+}
