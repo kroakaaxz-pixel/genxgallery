@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { getActiveProducts, categories } from '../data/products';
+import { formatPrice } from '../utils/currency';
 import ProductCard from '../components/ProductCard';
 import styles from './Home.module.css';
 
@@ -78,7 +79,7 @@ export default function Home() {
                     Fig. 0{index + 1} — {product.category}
                   </p>
                   <h3 className={styles.featuredItemName}>{product.name}</h3>
-                  <p className={styles.featuredItemPrice}>From ${product.price}</p>
+                  <p className={styles.featuredItemPrice}>From {formatPrice(product.price)}</p>
                 </div>
               </Link>
             ))}

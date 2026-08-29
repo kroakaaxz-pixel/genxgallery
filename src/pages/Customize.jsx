@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { products, frameSizes, frameMaterials, orientations, getSizePrice } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { uploadImage } from '../hooks/uploadImage';
+import { formatPrice } from '../utils/currency';
 import styles from './Customize.module.css';
 
 /**
@@ -53,7 +54,7 @@ export default function Customize() {
   })();
 
   const currentPrice = getSizePrice(selectedSize);
-  const materialFee = selectedMaterial === 'brushed-gold' ? 15 : 0;
+  const materialFee = selectedMaterial === 'brushed-gold' ? 500 : 0;
   const totalPrice = currentPrice + materialFee;
 
   const handleFileChange = useCallback(async (e) => {
@@ -282,7 +283,7 @@ export default function Customize() {
                     onClick={() => setSelectedSize(size.id)}
                   >
                     <span className={styles.sizeBtnLabel}>{size.label}</span>
-                    <span className={styles.sizeBtnPrice}>${size.price}</span>
+                    <span className={styles.sizeBtnPrice}>{formatPrice(size.price)}</span>
                   </button>
                 ))}
               </div>
@@ -303,7 +304,7 @@ export default function Customize() {
                       style={{ backgroundColor: mat.hex }}
                     />
                     {mat.name}
-                    {mat.id === 'brushed-gold' && ' +$15'}
+                    {mat.id === 'brushed-gold' && ` +${formatPrice(500)}`}
                   </button>
                 ))}
               </div>
@@ -329,22 +330,22 @@ export default function Customize() {
             <div className={styles.priceSummary}>
               <div className={styles.priceRow}>
                 <span className={styles.priceLabel}>Print + Frame</span>
-                <span className={styles.priceValue}>${currentPrice}</span>
+                <span className={styles.priceValue}>{formatPrice(currentPrice)}</span>
               </div>
               {materialFee > 0 && (
                 <div className={styles.priceRow}>
                   <span className={styles.priceLabel}>Material upgrade</span>
-                  <span className={styles.priceValue}>+${materialFee}</span>
+                  <span className={styles.priceValue}>+{formatPrice(materialFee)}</span>
                 </div>
               )}
               <div className={styles.priceRowTotal}>
                 <span>Total</span>
-                <span className={styles.priceAccent}>${totalPrice}</span>
+                <span className={styles.priceAccent}>{formatPrice(totalPrice)}</span>
               </div>
             </div>
 
             <button onClick={handleAddToCart} className={styles.addToCartBtn}>
-              Add to Cart — ${totalPrice}
+              Add to Cart — {formatPrice(totalPrice)}
             </button>
           </div>
         </div>

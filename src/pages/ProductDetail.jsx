@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useParams, Navigate, Link } from 'react-router-dom';
 import { getProductById, frameSizes, frameMaterials, getSizePrice } from '../data/products';
 import { useCart } from '../context/CartContext';
+import { formatPrice } from '../utils/currency';
 import styles from './ProductDetail.module.css';
 
 export default function ProductDetail() {
@@ -55,7 +56,7 @@ export default function ProductDetail() {
           <div className={styles.infoSection}>
             <p className={styles.productCategory}>{product.category}</p>
             <h1 className={styles.productName}>{product.name}</h1>
-            <p className={styles.productPrice}>${currentPrice}</p>
+            <p className={styles.productPrice}>{formatPrice(currentPrice)}</p>
             <p className={styles.productDescription}>{product.description}</p>
 
             <div className={styles.optionGroup}>
@@ -68,7 +69,7 @@ export default function ProductDetail() {
                     className={`${styles.sizeBtn} ${selectedSize === size.id ? styles.sizeBtnActive : ''}`}
                   >
                     {size.label}
-                    <span className={styles.sizeBtnPrice}>${size.price}</span>
+                    <span className={styles.sizeBtnPrice}>{formatPrice(size.price)}</span>
                   </button>
                 ))}
               </div>
@@ -92,7 +93,7 @@ export default function ProductDetail() {
 
             <div className={styles.actions}>
               <button onClick={handleAddToCart} className={styles.addToCartBtn}>
-                Add to Cart — ${currentPrice}
+                Add to Cart — {formatPrice(currentPrice)}
               </button>
               <Link to="/customize" className={styles.customizeBtn}>
                 Customize

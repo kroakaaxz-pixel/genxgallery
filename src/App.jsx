@@ -10,6 +10,7 @@ import ProductDetail from './pages/ProductDetail';
 import Customize from './pages/Customize';
 import Cart from './pages/Cart';
 import About from './pages/About';
+import Admin from './pages/Admin';
 import NotFound from './pages/NotFound';
 import './styles/global.css';
 
@@ -35,6 +36,7 @@ function App() {
           <Route path="/customize" element={<Customize />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/about" element={<About />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="/404" element={<NotFound />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

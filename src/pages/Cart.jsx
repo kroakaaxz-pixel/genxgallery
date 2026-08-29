@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { formatPrice } from '../utils/currency';
 import styles from './Cart.module.css';
 
 export default function Cart() {
@@ -56,7 +57,7 @@ export default function Cart() {
                 </div>
                 <div className={styles.itemActions}>
                   <p className={styles.itemPrice}>
-                    ${(item.options.sizePrice || item.product.price) * item.quantity}
+                    {formatPrice((item.options.sizePrice || item.product.price) * item.quantity)}
                   </p>
                   <div className={styles.quantityControl}>
                     <button
@@ -88,7 +89,7 @@ export default function Cart() {
             <h2 className={styles.summaryTitle}>Order Summary</h2>
             <div className={styles.summaryRow}>
               <span>Subtotal ({items.length} items)</span>
-              <span>${totalPrice}</span>
+              <span>{formatPrice(totalPrice)}</span>
             </div>
             <div className={styles.summaryRow}>
               <span>Shipping</span>
@@ -96,7 +97,7 @@ export default function Cart() {
             </div>
             <div className={styles.summaryTotal}>
               <span>Total</span>
-              <span>${totalPrice}</span>
+              <span>{formatPrice(totalPrice)}</span>
             </div>
             <button className={styles.checkoutBtn}>
               Proceed to Checkout

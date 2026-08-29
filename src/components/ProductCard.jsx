@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { frameSizes } from '../data/products';
+import { formatPrice } from '../utils/currency';
 import styles from './ProductCard.module.css';
 
 export default function ProductCard({ product, className = '' }) {
@@ -36,7 +37,7 @@ export default function ProductCard({ product, className = '' }) {
         <p className={styles.category}>{product.category}</p>
         <h3 className={styles.name}>{product.name}</h3>
         <p className={styles.price}>
-          From <span className={styles.priceAccent}>${product.price}</span>
+          From <span className={styles.priceAccent}>{formatPrice(product.price)}</span>
         </p>
       </div>
     </Link>
