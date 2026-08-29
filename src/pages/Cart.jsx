@@ -52,7 +52,7 @@ export default function Cart() {
                   <p className={styles.itemDetails}>
                     {item.options.sizeLabel && `${item.options.sizeLabel}`}
                     {item.options.materialName && ` · ${item.options.materialName}`}
-                    {item.options.orientationLabel && ` · ${item.options.orientationLabel}`}
+                    {item.options.textureName && ` · ${item.options.textureName}`}
                   </p>
                 </div>
                 <div className={styles.itemActions}>

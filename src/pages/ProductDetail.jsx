@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, Navigate, Link } from 'react-router-dom';
-import { getProductById, frameSizes, frameMaterials, getSizePrice } from '../data/products';
+import { getProductById, frameSizes, frameMaterials, getSizePrice, getDiscountedSizePrice } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../utils/currency';
 import styles from './ProductDetail.module.css';
@@ -10,13 +10,15 @@ export default function ProductDetail() {
   const product = getProductById(id);
   const { addItem } = useCart();
 
-  const [selectedSize, setSelectedSize] = useState(product?.sizes?.[0] || '8x10');
-  const [selectedMaterial, setSelectedMaterial] = useState('black-matte');
+  const [selectedSize, setSelectedSize] = useState(product?.sizes?.[0] || 'a4');
+  const [selectedMaterial, setSelectedMaterial] = useState('black');
 
   if (!product) return <Navigate to="/404" replace />;
 
   const availableSizes = frameSizes.filter((s) => product.sizes?.includes(s.id));
-  const currentPrice = getSizePrice(selectedSize);
+  const hasDiscount = product.discountPercent > 0;
+  const currentPrice = getDiscountedSizePrice(product, selectedSize);
+  const originalPrice = getSizePrice(selectedSize);
 
   const handleAddToCart = () => {
     const size = frameSizes.find((s) => s.id === selectedSize);
@@ -56,22 +58,46 @@ export default function ProductDetail() {
           <div className={styles.infoSection}>
             <p className={styles.productCategory}>{product.category}</p>
             <h1 className={styles.productName}>{product.name}</h1>
-            <p className={styles.productPrice}>{formatPrice(currentPrice)}</p>
+            <p className={styles.productPrice}>
+              {hasDiscount ? (
+                <>
+                  <span style={{ textDecoration: 'line-through', opacity: 0.5, fontSize: '1rem', fontWeight: 400, marginRight: '8px' }}>
+                    {formatPrice(originalPrice)}
+                  </span>
+                  <span>{formatPrice(currentPrice)}</span>
+                  <span style={{ fontSize: '0.8rem', marginLeft: '6px' }}>-{product.discountPercent}%</span>
+                </>
+              ) : (
+                formatPrice(currentPrice)
+              )}
+            </p>
             <p className={styles.productDescription}>{product.description}</p>
 
             <div className={styles.optionGroup}>
               <p className={styles.optionLabel}>Size</p>
               <div className={styles.sizeOptions}>
-                {availableSizes.map((size) => (
-                  <button
-                    key={size.id}
-                    onClick={() => setSelectedSize(size.id)}
-                    className={`${styles.sizeBtn} ${selectedSize === size.id ? styles.sizeBtnActive : ''}`}
-                  >
-                    {size.label}
-                    <span className={styles.sizeBtnPrice}>{formatPrice(size.price)}</span>
-                  </button>
-                ))}
+                {availableSizes.map((size) => {
+                  const sizeDiscounted = getDiscountedSizePrice(product, size.id);
+                  return (
+                    <button
+                      key={size.id}
+                      onClick={() => setSelectedSize(size.id)}
+                      className={`${styles.sizeBtn} ${selectedSize === size.id ? styles.sizeBtnActive : ''}`}
+                    >
+                      {size.label}
+                      <span className={styles.sizeBtnPrice}>
+                        {hasDiscount ? (
+                          <>
+                            <span style={{ textDecoration: 'line-through', opacity: 0.5 }}>{formatPrice(size.price)}</span>
+                            {' '}{formatPrice(sizeDiscounted)}
+                          </>
+                        ) : (
+                          formatPrice(size.price)
+                        )}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

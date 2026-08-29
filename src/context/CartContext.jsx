@@ -6,7 +6,7 @@ export function CartProvider({ children }) {
   const [items, setItems] = useState([]);
 
   const addItem = useCallback((product, options = {}) => {
-    const key = `${product.id}-${options.size || 'default'}-${options.material || 'default'}-${options.orientation || 'default'}`;
+    const key = `${product.id}-${options.size || 'default'}-${options.material || 'default'}-${options.texture || 'default'}`;
     setItems((prev) => {
       const existing = prev.find((item) => item.key === key);
       if (existing) {

@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
-import { frameSizes } from '../data/products';
+import { frameSizes, getDiscountedPrice } from '../data/products';
 import { formatPrice } from '../utils/currency';
 import styles from './ProductCard.module.css';
 
 export default function ProductCard({ product, className = '' }) {
   const availableSizes = frameSizes.filter((s) => product.sizes?.includes(s.id));
+  const hasDiscount = product.discountPercent > 0;
+  const discountedPrice = getDiscountedPrice(product);
 
   return (
     <Link
@@ -18,7 +20,10 @@ export default function ProductCard({ product, className = '' }) {
           className={styles.image}
           loading="lazy"
         />
-        {product.badge && (
+        {hasDiscount && (
+          <span className={styles.discountBadge}>-{product.discountPercent}%</span>
+        )}
+        {product.badge && !hasDiscount && (
           <span className={styles.badge}>{product.badge}</span>
         )}
         <div className={styles.overlay}>
@@ -37,7 +42,14 @@ export default function ProductCard({ product, className = '' }) {
         <p className={styles.category}>{product.category}</p>
         <h3 className={styles.name}>{product.name}</h3>
         <p className={styles.price}>
-          From <span className={styles.priceAccent}>{formatPrice(product.price)}</span>
+          {hasDiscount ? (
+            <>
+              <span className={styles.priceStrikethrough}>{formatPrice(product.price)}</span>{' '}
+              <span className={styles.priceAccent}>{formatPrice(discountedPrice)}</span>
+            </>
+          ) : (
+            <>From <span className={styles.priceAccent}>{formatPrice(product.price)}</span></>
+          )}
         </p>
       </div>
     </Link>

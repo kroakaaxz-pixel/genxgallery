@@ -1,25 +1,18 @@
 import { useState, useRef, useCallback } from 'react';
-import { products, frameSizes, frameMaterials, orientations, getSizePrice } from '../data/products';
+import { products, frameSizes, frameMaterials, textures, getSizePrice } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { uploadImage } from '../hooks/uploadImage';
 import { formatPrice } from '../utils/currency';
 import styles from './Customize.module.css';
 
-/**
- * Returns the effective width/height of the image as it would sit inside
- * the frame, using object-fit: cover semantics. This tells us which
- * dimension of the source image is clipped.
- */
 function getCoverFit(sourceW, sourceH, frameW, frameH) {
   const srcRatio = sourceW / sourceH;
   const frameRatio = frameW / frameH;
   if (srcRatio > frameRatio) {
-    // source is wider relative to frame → crop sides
     const displayH = frameH;
     const displayW = frameH * srcRatio;
     return { displayW, displayH, cropped: 'sides' };
   }
-  // source is taller relative to frame → crop top/bottom
   const displayW = frameW;
   const displayH = frameW / srcRatio;
   return { displayW, displayH, cropped: 'top/bottom' };
@@ -32,17 +25,16 @@ export default function Customize() {
   const [source, setSource] = useState('browse');
   const [selectedDesign, setSelectedDesign] = useState(products[0]);
   const [customImage, setCustomImage] = useState(null);
-  const [uploadedNatural, setUploadedNatural] = useState(null); // { w, h }
-  const [selectedSize, setSelectedSize] = useState('11x14');
-  const [selectedMaterial, setSelectedMaterial] = useState('black-matte');
-  const [selectedOrientation, setSelectedOrientation] = useState('portrait');
+  const [uploadedNatural, setUploadedNatural] = useState(null);
+  const [selectedSize, setSelectedSize] = useState('a4');
+  const [selectedMaterial, setSelectedMaterial] = useState('black');
+  const [selectedTexture, setSelectedTexture] = useState('matte');
   const [uploadError, setUploadError] = useState(null);
 
   const previewImage = source === 'upload' && customImage
     ? customImage
     : selectedDesign?.image;
 
-  // Determine source image's natural aspect ratio (w/h)
   const sourceRatio = (() => {
     if (source === 'upload' && uploadedNatural) {
       return uploadedNatural.w / uploadedNatural.h;
@@ -50,12 +42,12 @@ export default function Customize() {
     if (selectedDesign?.naturalRatio) {
       return selectedDesign.naturalRatio;
     }
-    return 0.75; // fallback: portrait 3:4
+    return 0.75;
   })();
 
   const currentPrice = getSizePrice(selectedSize);
-  const materialFee = selectedMaterial === 'brushed-gold' ? 500 : 0;
-  const totalPrice = currentPrice + materialFee;
+  const textureFee = textures.find((t) => t.id === selectedTexture)?.upcharge || 0;
+  const totalPrice = currentPrice + textureFee;
 
   const handleFileChange = useCallback(async (e) => {
     const file = e.target.files?.[0];
@@ -74,7 +66,7 @@ export default function Customize() {
   const handleAddToCart = () => {
     const size = frameSizes.find((s) => s.id === selectedSize);
     const material = frameMaterials.find((m) => m.id === selectedMaterial);
-    const orientation = orientations.find((o) => o.id === selectedOrientation);
+    const texture = textures.find((t) => t.id === selectedTexture);
 
     addItem(
       {
@@ -89,9 +81,9 @@ export default function Customize() {
         sizePrice: currentPrice,
         material: selectedMaterial,
         materialName: material?.name,
-        materialFee,
-        orientation: selectedOrientation,
-        orientationLabel: orientation?.label,
+        texture: selectedTexture,
+        textureName: texture?.name,
+        textureFee,
         customImage: source === 'upload',
       }
     );
@@ -101,34 +93,15 @@ export default function Customize() {
     const size = frameSizes.find((s) => s.id === selectedSize);
     if (!size) return { width: 200, height: 260 };
 
-    // Scale frame proportionally based on actual print dimensions
-    // so size changes are visually obvious in the preview
     const maxPreviewWidth = 280;
     const maxPreviewHeight = 360;
     const printRatio = size.width / size.height;
 
-    let width, height;
-    if (selectedOrientation === 'landscape') {
-      // For landscape, swap the ratio: height/width becomes the dominant axis
-      const landscapeRatio = size.height / size.width;
-      width = maxPreviewWidth;
-      height = maxPreviewWidth * landscapeRatio;
-      if (height > maxPreviewHeight) {
-        height = maxPreviewHeight;
-        width = maxPreviewHeight / landscapeRatio;
-      }
-    } else if (selectedOrientation === 'square') {
-      const dim = Math.min(maxPreviewWidth, maxPreviewHeight);
-      width = dim;
-      height = dim;
-    } else {
-      // Portrait: use print ratio directly
-      width = maxPreviewWidth;
-      height = maxPreviewWidth / printRatio;
-      if (height > maxPreviewHeight) {
-        height = maxPreviewHeight;
-        width = maxPreviewHeight * printRatio;
-      }
+    let width = maxPreviewWidth;
+    let height = maxPreviewWidth / printRatio;
+    if (height > maxPreviewHeight) {
+      height = maxPreviewHeight;
+      width = maxPreviewHeight * printRatio;
     }
 
     return { width: Math.round(width), height: Math.round(height) };
@@ -137,12 +110,10 @@ export default function Customize() {
   const frameDims = getFrameDimensions();
   const material = frameMaterials.find((m) => m.id === selectedMaterial);
 
-  // Compute how the image covers the frame — used for crop warning
   const frameRatio = frameDims.width / frameDims.height;
   const ratioDiff = Math.abs(sourceRatio - frameRatio);
   const isSignificantCrop = ratioDiff > 0.35;
 
-  // Determine which dimension the source is "off" by
   const { cropped } = getCoverFit(sourceRatio * 100, 100, frameRatio * 100, 100);
 
   return (
@@ -166,7 +137,7 @@ export default function Customize() {
                 }}
               >
                 <div
-                  className={styles.frameInner}
+                  className={`${styles.frameInner} ${selectedTexture === 'glossy' ? styles.glossy : styles.matte}`}
                   style={{ width: frameDims.width, height: frameDims.height }}
                 >
                   {previewImage ? (
@@ -204,7 +175,7 @@ export default function Customize() {
             <p className={styles.previewLabel}>Live Preview</p>
             {isSignificantCrop && (
               <p className={styles.cropNote}>
-                Image aspect ({sourceRatio > 1 ? 'landscape' : 'portrait'}) differs from frame ({selectedOrientation}). Significant cropping will occur.
+                Image aspect ({sourceRatio > 1 ? 'landscape' : 'portrait'}) differs from frame. Significant cropping may occur.
               </p>
             )}
           </div>
@@ -291,7 +262,7 @@ export default function Customize() {
 
             {/* Frame Material */}
             <div className={styles.optionGroup}>
-              <p className={styles.optionLabel}>Frame Material</p>
+              <p className={styles.optionLabel}>Frame</p>
               <div className={styles.materialGrid}>
                 {frameMaterials.map((mat) => (
                   <button
@@ -304,23 +275,26 @@ export default function Customize() {
                       style={{ backgroundColor: mat.hex }}
                     />
                     {mat.name}
-                    {mat.id === 'brushed-gold' && ` +${formatPrice(500)}`}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Orientation */}
+            {/* Texture */}
             <div className={styles.optionGroup}>
-              <p className={styles.optionLabel}>Orientation</p>
-              <div className={styles.orientationGrid}>
-                {orientations.map((o) => (
+              <p className={styles.optionLabel}>Finish</p>
+              <div className={styles.textureGrid}>
+                {textures.map((tex) => (
                   <button
-                    key={o.id}
-                    className={`${styles.orientationBtn} ${selectedOrientation === o.id ? styles.orientationBtnActive : ''}`}
-                    onClick={() => setSelectedOrientation(o.id)}
+                    key={tex.id}
+                    className={`${styles.textureBtn} ${selectedTexture === tex.id ? styles.textureBtnActive : ''}`}
+                    onClick={() => setSelectedTexture(tex.id)}
                   >
-                    {o.label}
+                    <span className={styles.textureIcon}>
+                      {tex.id === 'glossy' ? '✦' : '●'}
+                    </span>
+                    {tex.name}
+                    {tex.upcharge > 0 && ` +${formatPrice(tex.upcharge)}`}
                   </button>
                 ))}
               </div>
@@ -332,10 +306,10 @@ export default function Customize() {
                 <span className={styles.priceLabel}>Print + Frame</span>
                 <span className={styles.priceValue}>{formatPrice(currentPrice)}</span>
               </div>
-              {materialFee > 0 && (
+              {textureFee > 0 && (
                 <div className={styles.priceRow}>
-                  <span className={styles.priceLabel}>Material upgrade</span>
-                  <span className={styles.priceValue}>+{formatPrice(materialFee)}</span>
+                  <span className={styles.priceLabel}>Finish upgrade</span>
+                  <span className={styles.priceValue}>+{formatPrice(textureFee)}</span>
                 </div>
               )}
               <div className={styles.priceRowTotal}>

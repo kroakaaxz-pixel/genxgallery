@@ -429,6 +429,144 @@
   color: var(--color-ink-muted);
 }
 
+/* Tabs */
+.tabBar {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--color-border);
+  margin-bottom: var(--space-xl);
+}
+
+.tab {
+  padding: 12px 24px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: transparent;
+  color: var(--color-ink-muted);
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab:hover {
+  color: var(--color-ink);
+}
+
+.tabActive {
+  color: var(--color-ink);
+  font-weight: 600;
+  border-bottom-color: var(--color-ink);
+}
+
+/* Analytics */
+.analytics {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-md);
+}
+
+.kpiCard {
+  background: white;
+  border: 1px solid var(--color-border);
+  padding: var(--space-lg);
+  border-radius: 2px;
+}
+
+.kpiLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-ink-muted);
+  margin-bottom: var(--space-sm);
+}
+
+.kpiValue {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  margin-bottom: var(--space-xs);
+}
+
+.kpiChange {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.chartsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+.chartCard {
+  background: white;
+  border: 1px solid var(--color-border);
+  padding: var(--space-lg);
+  border-radius: 2px;
+}
+
+.chartTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: var(--space-lg);
+}
+
+.topProductsList {
+  display: flex;
+  flex-direction: column;
+}
+
+.topProductRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.topProductRow:last-child {
+  border-bottom: none;
+}
+
+.topProductRank {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-ink-muted);
+  min-width: 28px;
+}
+
+.topProductInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.topProductName {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.topProductMeta {
+  font-size: 0.7rem;
+  color: var(--color-ink-muted);
+}
+
+.topProductRevenue {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-accent);
+}
+
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
@@ -446,5 +584,13 @@
   .thImage,
   .tableImage {
     display: none;
+  }
+
+  .kpiGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .chartsGrid {
+    grid-template-columns: 1fr;
   }
 }

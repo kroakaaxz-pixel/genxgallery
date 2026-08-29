@@ -23,24 +23,19 @@ export const categories = [
 ];
 
 export const frameMaterials = [
-  { id: 'black-matte', name: 'Matte Black', hex: '#1A1A1A' },
-  { id: 'white-matte', name: 'Matte White', hex: '#F5F5F5' },
-  { id: 'natural-oak', name: 'Natural Oak', hex: '#C4A46C' },
-  { id: 'walnut', name: 'Walnut', hex: '#5C4033' },
-  { id: 'brushed-gold', name: 'Brushed Gold', hex: '#C5A55A' },
+  { id: 'black', name: 'Black', hex: '#1A1A1A' },
+  { id: 'white', name: 'White', hex: '#F5F5F5' },
+  { id: 'silver', name: 'Silver', hex: '#C0C0C0' },
 ];
 
 export const frameSizes = [
-  { id: '8x10', label: '8×10"', width: 8, height: 10, price: 1499 },
-  { id: '11x14', label: '11×14"', width: 11, height: 14, price: 2299 },
-  { id: '16x20', label: '16×20"', width: 16, height: 20, price: 3199 },
-  { id: '24x36', label: '24×36"', width: 24, height: 36, price: 4999 },
+  { id: 'a5', label: 'A5 (6×8")', width: 6, height: 8, price: 1499 },
+  { id: 'a4', label: 'A4 (8×12")', width: 8, height: 12, price: 2299 },
 ];
 
-export const orientations = [
-  { id: 'portrait', label: 'Portrait' },
-  { id: 'landscape', label: 'Landscape' },
-  { id: 'square', label: 'Square' },
+export const textures = [
+  { id: 'matte', name: 'Matte', upcharge: 0 },
+  { id: 'glossy', name: 'Glossy', upcharge: 200 },
 ];
 
 export const productStatuses = ['Active', 'Draft', 'Out of Stock', 'Sold Out'];
@@ -53,7 +48,8 @@ export const products = [
     category: 'cars',
     description: 'R34 GT-R silhouetted against a Tokyo sunset. The car that launched a thousand dreams.',
     price: 2299,
-    sizes: ['8x10', '11x14', '16x20'],
+    discountPercent: 15,
+    sizes: ['a5', 'a4'],
     image: 'https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=600&h=800&fit=crop',
     badge: 'Best Seller',
     naturalRatio: 0.75,
@@ -65,7 +61,8 @@ export const products = [
     category: 'cars',
     description: 'A clean-side profile of the 993 generation. Timeless lines, timeless car.',
     price: 2699,
-    sizes: ['11x14', '16x20', '24x36'],
+    discountPercent: 0,
+    sizes: ['a4'],
     image: 'https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=600&h=800&fit=crop',
     badge: 'New',
     naturalRatio: 0.75,
@@ -77,7 +74,8 @@ export const products = [
     category: 'cars',
     description: 'AE86 in the mountain pass. Touge legends never die.',
     price: 2099,
-    sizes: ['8x10', '11x14', '16x20'],
+    discountPercent: 10,
+    sizes: ['a5', 'a4'],
     image: 'https://images.unsplash.com/photo-1621135802920-133df287f89c?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
@@ -88,7 +86,8 @@ export const products = [
     category: 'cars',
     description: 'Murciélago in a gallery setting. Excess as art form.',
     price: 3199,
-    sizes: ['16x20', '24x36'],
+    discountPercent: 0,
+    sizes: ['a4'],
     image: 'https://images.unsplash.com/photo-1544829099-b9a0c07fad1a?w=600&h=800&fit=crop',
     badge: 'Limited',
     naturalRatio: 0.75,
@@ -102,7 +101,8 @@ export const products = [
     category: 'anime',
     description: 'Cyberpunk cityscape in the style of Ghost in the Shell. Rain-soaked streets and electric dreams.',
     price: 2499,
-    sizes: ['11x14', '16x20', '24x36'],
+    discountPercent: 20,
+    sizes: ['a4'],
     image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&h=800&fit=crop',
     badge: 'Popular',
     naturalRatio: 0.75,
@@ -114,7 +114,8 @@ export const products = [
     category: 'anime',
     description: 'Technical illustration of a giant robot in the style of Evangelion cutaway diagrams.',
     price: 2299,
-    sizes: ['8x10', '11x14', '16x20'],
+    discountPercent: 0,
+    sizes: ['a5', 'a4'],
     image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
@@ -125,7 +126,8 @@ export const products = [
     category: 'anime',
     description: 'Miyazaki-inspired forest spirit scene. Hand-painted aesthetic, giclée printed.',
     price: 2899,
-    sizes: ['11x14', '16x20', '24x36'],
+    discountPercent: 0,
+    sizes: ['a4'],
     image: 'https://images.unsplash.com/photo-1528164344705-47542687000d?w=600&h=800&fit=crop',
     badge: 'Staff Pick',
     naturalRatio: 0.75,
@@ -137,7 +139,8 @@ export const products = [
     category: 'anime',
     description: 'Ronin under a blood moon. Bold linework meets ukiyo-e composition.',
     price: 2399,
-    sizes: ['8x10', '11x14', '16x20'],
+    discountPercent: 5,
+    sizes: ['a5', 'a4'],
     image: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
@@ -150,7 +153,8 @@ export const products = [
     category: 'posters',
     description: 'Minimalist concert poster for a fictional festival. Risograph-style two-color print.',
     price: 1699,
-    sizes: ['8x10', '11x14', '16x20'],
+    discountPercent: 0,
+    sizes: ['a5', 'a4'],
     image: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
@@ -161,7 +165,8 @@ export const products = [
     category: 'posters',
     description: 'Swiss-style typographic print. Clean, precise, and endlessly wall-worthy.',
     price: 1599,
-    sizes: ['8x10', '11x14'],
+    discountPercent: 25,
+    sizes: ['a5'],
     image: 'https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
@@ -172,7 +177,8 @@ export const products = [
     category: 'posters',
     description: 'Retro-futuristic travel poster for a city that never was. Offset print aesthetic.',
     price: 1899,
-    sizes: ['11x14', '16x20', '24x36'],
+    discountPercent: 0,
+    sizes: ['a4'],
     image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
@@ -183,7 +189,8 @@ export const products = [
     category: 'posters',
     description: 'Fictional film poster in the tradition of 70s exploitation cinema. Bold, loud, unforgettable.',
     price: 1999,
-    sizes: ['16x20', '24x36'],
+    discountPercent: 0,
+    sizes: ['a4'],
     image: 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=600&h=800&fit=crop',
     badge: 'New',
     naturalRatio: 0.67,
@@ -195,7 +202,8 @@ export const products = [
     category: 'posters',
     description: 'Vintage NASA-inspired astronomy print. Retro science meets modern framing.',
     price: 2099,
-    sizes: ['11x14', '16x20', '24x36'],
+    discountPercent: 10,
+    sizes: ['a4'],
     image: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
@@ -214,4 +222,15 @@ export const getCategoryById = (id) => categories.find((c) => c.id === id);
 export const getSizePrice = (sizeId) => {
   const size = frameSizes.find((s) => s.id === sizeId);
   return size ? size.price : 0;
+};
+
+export const getDiscountedPrice = (product) => {
+  if (!product.discountPercent) return product.price;
+  return Math.round(product.price * (1 - product.discountPercent / 100));
+};
+
+export const getDiscountedSizePrice = (product, sizeId) => {
+  const basePrice = getSizePrice(sizeId);
+  if (!product.discountPercent) return basePrice;
+  return Math.round(basePrice * (1 - product.discountPercent / 100));
 };

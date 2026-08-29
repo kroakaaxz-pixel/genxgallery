@@ -375,16 +375,20 @@
   flex-shrink: 0;
 }
 
-/* Orientation */
-.orientationGrid {
+/* Texture */
+.textureGrid {
   display: flex;
   gap: var(--space-sm);
 }
 
-.orientationBtn {
+.textureBtn {
   flex: 1;
-  padding: 12px;
-  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: 14px;
+  font-size: 0.85rem;
   font-weight: 500;
   border: 1.5px solid var(--color-border);
   border-radius: 2px;
@@ -394,19 +398,56 @@
   text-align: center;
 }
 
-.orientationBtn:hover {
+.textureBtn:hover {
   border-color: var(--color-ink);
 }
 
-.orientationBtnActive {
+.textureBtnActive {
   border-color: var(--color-ink);
   background: var(--color-ink);
   color: var(--color-cream);
 }
 
-.orientationBtn:focus-visible {
+.textureBtn:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
+}
+
+.textureIcon {
+  font-size: 0.9rem;
+}
+
+/* Glossy/Matte visual treatment on frame preview */
+.glossy {
+  position: relative;
+}
+
+.glossy::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0.05) 40%,
+    transparent 60%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+.matte {
+  position: relative;
+}
+
+.matte::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.02);
+  pointer-events: none;
+  z-index: 2;
 }
 
 /* Price summary */
@@ -510,11 +551,11 @@
     gap: 6px;
   }
 
-  .orientationGrid {
+  .textureGrid {
     flex-wrap: wrap;
   }
 
-  .orientationBtn {
+  .textureBtn {
     flex: 1 1 calc(50% - 6px);
   }
 }

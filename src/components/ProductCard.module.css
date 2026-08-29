@@ -119,3 +119,22 @@
   color: var(--color-accent);
   font-weight: 600;
 }
+
+.priceStrikethrough {
+  text-decoration: line-through;
+  opacity: 0.5;
+  font-weight: 400;
+}
+
+.discountBadge {
+  position: absolute;
+  top: var(--space-md);
+  left: var(--space-md);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 4px 10px;
+  background: #1a7a3a;
+  color: white;
+  z-index: 2;
+}
