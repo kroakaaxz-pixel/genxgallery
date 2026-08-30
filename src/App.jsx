@@ -13,6 +13,9 @@ import About from './pages/About';
 import NotFound from './pages/NotFound';
 import Shipping from './pages/Shipping';
 import Returns from './pages/Returns';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
+import Analytics from './components/Analytics';
 import { getSiteStatus } from './lib/supabase';
 import './styles/global.css';
 
@@ -88,6 +91,7 @@ function App() {
       <CartProvider>
         <SiteStatusGate mode={siteMode}>
           <ScrollToTop />
+          <Analytics />
           <Header />
           <PageTransition>
             <Routes>
@@ -104,6 +108,8 @@ function App() {
               <Route path="/about" element={<About />} />
               <Route path="/shipping" element={<Shipping />} />
               <Route path="/returns" element={<Returns />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Terms />} />
               <Route path="/admin" element={<Suspense fallback={<div style={{ padding: '4rem', textAlign: 'center' }}>Loading admin…</div>}><Admin onStatusChange={setSiteMode} /></Suspense>} />
               <Route path="/404" element={<NotFound />} />
               <Route path="*" element={<NotFound />} />

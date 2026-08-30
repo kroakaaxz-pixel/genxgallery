@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FAF8F5"/>
+      <stop offset="100%" stop-color="#F0EDE8"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#C23B22"/>
+      <stop offset="100%" stop-color="#A83220"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Decorative accent bar -->
+  <rect x="0" y="0" width="8" height="630" fill="url(#accent)"/>
+
+  <!-- Decorative frame element (top right) -->
+  <rect x="1020" y="60" width="120" height="160" rx="2" fill="none" stroke="#E0DCD6" stroke-width="2"/>
+  <rect x="1035" y="75" width="90" height="130" rx="1" fill="none" stroke="#E0DCD6" stroke-width="1"/>
+
+  <!-- Logo -->
+  <text x="80" y="180" font-family="Georgia, 'Times New Roman', serif" font-size="48" font-weight="600" fill="#1A1A1A" letter-spacing="-1">
+    Gen X
+  </text>
+  <text x="80" y="232" font-family="Georgia, 'Times New Roman', serif" font-size="48" font-weight="600" fill="#C23B22" letter-spacing="-1">
+    Gallery
+  </text>
+
+  <!-- Tagline -->
+  <text x="80" y="310" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="20" fill="#3D3D3D" font-weight="400">
+    Premium framed prints for people who care
+  </text>
+  <text x="80" y="340" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="20" fill="#3D3D3D" font-weight="400">
+    about what's on their walls.
+  </text>
+
+  <!-- Categories -->
+  <text x="80" y="430" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="13" fill="#B0341F" font-weight="600" letter-spacing="3" text-transform="uppercase">
+    POP CULTURE · AUTOMOTIVE · ANIME · TYPOGRAPHIC
+  </text>
+
+  <!-- Decorative line -->
+  <rect x="80" y="460" width="60" height="2" fill="#C23B22"/>
+
+  <!-- URL -->
+  <text x="80" y="520" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif" font-size="16" fill="#6B6B6B" font-weight="400">
+    genxgallery.com
+  </text>
+
+  <!-- Bottom decorative frame images (abstract) -->
+  <rect x="700" y="340" width="180" height="240" rx="2" fill="#1A1A1A" opacity="0.06"/>
+  <rect x="720" y="360" width="140" height="200" rx="1" fill="#C23B22" opacity="0.08"/>
+  <rect x="920" y="380" width="160" height="200" rx="2" fill="#1A1A1A" opacity="0.04"/>
+  <rect x="940" y="400" width="120" height="160" rx="1" fill="#2D6A4F" opacity="0.06"/>
+</svg>

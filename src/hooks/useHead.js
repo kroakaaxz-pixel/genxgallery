@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 const SITE_NAME = 'Gen X Gallery';
 const DEFAULT_DESCRIPTION = 'Premium framed prints for people who care about what\'s on their walls. Pop culture, automotive, anime, and typographic art — gallery-ready.';
-const DEFAULT_IMAGE = 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=1200&h=630&fit=crop';
+const DEFAULT_IMAGE = '/og-image.svg';
 const SITE_URL = 'https://genxgallery.com';
 
 export function useHead({ title, description, image, url, type = 'website' } = {}) {

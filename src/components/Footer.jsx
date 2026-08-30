@@ -34,6 +34,8 @@ export default function Footer() {
               <li><Link to="/about">Our Story</Link></li>
               <li><Link to="/shipping">Shipping</Link></li>
               <li><Link to="/returns">Returns &amp; Refunds</Link></li>
+              <li><Link to="/privacy">Privacy Policy</Link></li>
+              <li><Link to="/terms">Terms &amp; Conditions</Link></li>
             </ul>
           </div>
 
