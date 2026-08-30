@@ -1,9 +1,57 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Navigate, Link } from 'react-router-dom';
-import { getProductById, frameSizes, frameMaterials, posterSizes, getSizePrice, getPosterSizePrice, getDiscountedSizePrice, getDiscountedPrice } from '../data/products';
+import { getProductById, frameSizes, frameMaterials, posterSizes, getSizePrice, getPosterSizePrice, getDiscountedSizePrice, getDiscountedPrice, getReviewsForProduct } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../utils/currency';
+import { useHead } from '../hooks/useHead';
+import ProductCarousel from '../components/ProductCarousel';
 import styles from './ProductDetail.module.css';
+
+const RECENTLY_VIEWED_KEY = 'gxg_recently_viewed';
+const MAX_RECENT = 6;
+
+function getRecentlyViewed() {
+  try {
+    return JSON.parse(localStorage.getItem(RECENTLY_VIEWED_KEY)) || [];
+  } catch { return []; }
+}
+
+function addRecentlyViewed(productId) {
+  const current = getRecentlyViewed().filter((id) => id !== productId);
+  current.unshift(productId);
+  localStorage.setItem(RECENTLY_VIEWED_KEY, JSON.stringify(current.slice(0, MAX_RECENT)));
+}
+
+function StarRating({ rating, count }) {
+  return (
+    <div className={styles.starRating}>
+      <div className={styles.stars}>
+        {[1, 2, 3, 4, 5].map((star) => (
+          <span
+            key={star}
+            className={`${styles.star} ${star <= Math.round(rating) ? styles.starFilled : ''}`}
+          >
+            ★
+          </span>
+        ))}
+      </div>
+      <span className={styles.ratingText}>{rating}</span>
+      <span className={styles.reviewCount}>({count} reviews)</span>
+    </div>
+  );
+}
+
+function timeAgo(dateStr) {
+  const now = new Date();
+  const date = new Date(dateStr);
+  const days = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+  if (days < 1) return 'Today';
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return `${days} days ago`;
+  if (days < 30) return `${Math.floor(days / 7)} weeks ago`;
+  if (days < 365) return `${Math.floor(days / 30)} months ago`;
+  return `${Math.floor(days / 365)} years ago`;
+}
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -16,6 +64,32 @@ export default function ProductDetail() {
 
   const [selectedSize, setSelectedSize] = useState(product?.sizes?.[0] || 'a4');
   const [selectedMaterial, setSelectedMaterial] = useState('black');
+
+  // Track recently viewed
+  useEffect(() => {
+    if (product) addRecentlyViewed(product.id);
+  }, [product]);
+
+  // SEO
+  useHead(
+    product
+      ? {
+          title: product.name,
+          description: product.description,
+          image: product.image,
+          type: 'product',
+        }
+      : {}
+  );
+
+  // Recently viewed (excluding current product)
+  const recentlyViewed = getRecentlyViewed()
+    .filter((vid) => vid !== product?.id)
+    .map((vid) => getProductById(vid))
+    .filter(Boolean);
+
+  // Review data from centralized store
+  const reviewData = product ? getReviewsForProduct(product.id) : null;
 
   if (!product) return <Navigate to="/404" replace />;
 
@@ -174,8 +248,40 @@ export default function ProductDetail() {
                 <span className={styles.detailValue}>{isFramed ? 'Ready to hang, ships in 3–5 days' : 'Ships in a protective tube, 3–5 days'}</span>
               </div>
             </div>
+
+            {reviewData && reviewData.reviews.length > 0 && (
+              <div className={styles.reviewsSection}>
+                <div className={styles.reviewsHeader}>
+                  <h2 className={styles.reviewsTitle}>Customer Reviews</h2>
+                  <StarRating rating={reviewData.rating} count={reviewData.reviewCount} />
+                </div>
+                <div className={styles.reviewsList}>
+                  {reviewData.reviews.map((review, i) => (
+                    <div key={i} className={styles.reviewCard}>
+                      <div className={styles.reviewTop}>
+                        <span className={styles.reviewName}>{review.name}</span>
+                        <span className={styles.reviewDate}>{timeAgo(review.date)}</span>
+                      </div>
+                      <div className={styles.reviewStars}>
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <span key={s} className={`${styles.star} ${s <= review.rating ? styles.starFilled : ''}`}>★</span>
+                        ))}
+                      </div>
+                      <p className={styles.reviewComment}>{review.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
+
+        {recentlyViewed.length > 0 && (
+          <div className={styles.recentlyViewed}>
+            <h2 className={styles.recentlyViewedTitle}>Recently Viewed</h2>
+            <ProductCarousel products={recentlyViewed} />
+          </div>
+        )}
       </div>
     </main>
   );

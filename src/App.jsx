@@ -11,6 +11,8 @@ import Customize from './pages/Customize';
 import Cart from './pages/Cart';
 import About from './pages/About';
 import NotFound from './pages/NotFound';
+import Shipping from './pages/Shipping';
+import Returns from './pages/Returns';
 import { getSiteStatus } from './lib/supabase';
 import './styles/global.css';
 
@@ -90,6 +92,8 @@ function App() {
             <Route path="/customize" element={<Customize />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/about" element={<About />} />
+            <Route path="/shipping" element={<Shipping />} />
+            <Route path="/returns" element={<Returns />} />
             <Route path="/admin" element={<Suspense fallback={<div style={{ padding: '4rem', textAlign: 'center' }}>Loading admin…</div>}><Admin onStatusChange={setSiteMode} /></Suspense>} />
             <Route path="/404" element={<NotFound />} />
             <Route path="*" element={<NotFound />} />

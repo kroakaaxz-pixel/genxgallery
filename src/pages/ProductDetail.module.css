@@ -265,6 +265,116 @@
   font-weight: 500;
 }
 
+/* Star Rating */
+.starRating {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.stars {
+  display: flex;
+  gap: 1px;
+}
+
+.star {
+  font-size: 0.95rem;
+  color: var(--color-border);
+}
+
+.starFilled {
+  color: #D4A017;
+}
+
+.ratingText {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.reviewCount {
+  font-size: 0.85rem;
+  color: var(--color-ink-muted);
+}
+
+/* Reviews */
+.reviewsSection {
+  margin-top: var(--space-3xl);
+  padding-top: var(--space-2xl);
+  border-top: 1px solid var(--color-border);
+}
+
+.reviewsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-xl);
+}
+
+.reviewsTitle {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.reviewsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.reviewCard {
+  padding: var(--space-lg);
+  background: var(--color-cream);
+  border-radius: 2px;
+}
+
+.reviewTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-xs);
+}
+
+.reviewName {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-ink);
+}
+
+.reviewDate {
+  font-size: 0.8rem;
+  color: var(--color-ink-muted);
+}
+
+.reviewStars {
+  margin-bottom: var(--space-sm);
+}
+
+.reviewStars .star {
+  font-size: 0.8rem;
+}
+
+.reviewComment {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--color-ink-light);
+}
+
+/* Recently Viewed */
+.recentlyViewed {
+  margin-top: var(--space-4xl);
+  padding-top: var(--space-3xl);
+  border-top: 1px solid var(--color-border);
+}
+
+.recentlyViewedTitle {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: var(--space-xl);
+}
+
 @media (max-width: 768px) {
   .productGrid {
     grid-template-columns: 1fr;
@@ -273,5 +383,11 @@
 
   .imageSection {
     position: static;
+  }
+
+  .reviewsHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
   }
 }

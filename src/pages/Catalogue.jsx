@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { getActiveProducts, categories, subCategories } from '../data/products';
+import { useHead } from '../hooks/useHead';
 import ProductCard from '../components/ProductCard';
 import styles from './Catalogue.module.css';
 
@@ -13,6 +14,10 @@ const sortOptions = [
 ];
 
 export default function Catalogue() {
+  useHead({
+    title: 'Catalogue',
+    description: 'Browse the full Gen X Gallery collection — framed posters, unframed prints, and custom frames across anime, cars, bikes, and more.',
+  });
   const [catFilter, setCatFilter] = useState('all');
   const [subFilter, setSubFilter] = useState('all');
   const [sort, setSort] = useState('featured');

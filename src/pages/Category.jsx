@@ -1,5 +1,6 @@
 import { useParams, useLocation, Navigate, Link } from 'react-router-dom';
 import { getCategoryById, getProductsBySubCategory, getProductsByCategory, categories, subCategories, getSubCategoryById } from '../data/products';
+import { useHead } from '../hooks/useHead';
 import ProductCard from '../components/ProductCard';
 import styles from './Category.module.css';
 
@@ -47,6 +48,12 @@ export default function Category() {
   const pageDescription = subCategoryId
     ? subCategoryDescriptions[subCategoryId]
     : category.description;
+
+  useHead({
+    title: subCategory ? `${category.name} — ${subCategory.name}` : category.name,
+    description: pageDescription,
+    image: heroImage,
+  });
 
   return (
     <main className={styles.page}>

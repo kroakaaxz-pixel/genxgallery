@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { getActiveProducts, getNewArrivals, getSpecialDeals, categories, subCategories, getDiscountedPrice } from '../data/products';
 import { formatPrice } from '../utils/currency';
+import { useHead } from '../hooks/useHead';
 import ProductCard from '../components/ProductCard';
 import ProductCarousel from '../components/ProductCarousel';
 import styles from './Home.module.css';
@@ -13,6 +14,12 @@ const newArrivals = getNewArrivals();
 const specialDeals = getSpecialDeals();
 
 export default function Home() {
+  useHead({
+    title: null,
+    description: 'Premium framed prints and posters for people who care about what\'s on their walls. Pop culture, automotive, anime, and typographic art — gallery-ready.',
+    image: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=1200&h=630&fit=crop',
+  });
+
   return (
     <main>
       {/* Hero */}

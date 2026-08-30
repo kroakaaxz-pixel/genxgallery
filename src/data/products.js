@@ -395,3 +395,88 @@ export const getNewArrivals = () =>
 
 export const getSpecialDeals = () =>
   products.filter((p) => p.status === 'Active' && p.isSpecialDeal);
+
+// Mock review data — display-only, read-only for now.
+// A real review system would need backend storage and authentication.
+const reviewData = {
+  1: { rating: 4.8, reviewCount: 47, reviews: [
+    { name: 'Arjun M.', rating: 5, date: '2026-08-10', comment: 'The R34 print is stunning. Colors are rich and the frame quality is exceptional. Hangs perfectly in my study.' },
+    { name: 'Priya K.', rating: 5, date: '2026-08-02', comment: 'Bought this for my husband\'s birthday. He\'s obsessed. The packaging was also excellent — no damage during shipping.' },
+    { name: 'Rohan S.', rating: 4, date: '2026-07-20', comment: 'Great print, solid frame. Only minor note: the A5 size is smaller than I expected. Go A4 if you want impact.' },
+  ]},
+  2: { rating: 4.6, reviewCount: 32, reviews: [
+    { name: 'Vikram T.', rating: 5, date: '2026-08-15', comment: 'Clean, elegant, and exactly what my office needed. The 993 profile is timeless.' },
+    { name: 'Meera J.', rating: 4, date: '2026-07-28', comment: 'Beautiful print. The black frame is sleek. Wish there were more size options though.' },
+  ]},
+  3: { rating: 4.7, reviewCount: 28, reviews: [
+    { name: 'Karan D.', rating: 5, date: '2026-08-12', comment: 'Touge vibes captured perfectly. The moody tones are even better in person than in the photos.' },
+    { name: 'Nisha R.', rating: 5, date: '2026-07-30', comment: 'Already ordered a second one for my garage wall. Perfect gift for any JDM fan.' },
+  ]},
+  4: { rating: 4.9, reviewCount: 19, reviews: [
+    { name: 'Aditya P.', rating: 5, date: '2026-08-08', comment: 'This is gallery-worthy. The gold frame option makes it look like a piece from an actual exhibition.' },
+    { name: 'Sana L.', rating: 5, date: '2026-07-15', comment: 'Worth every penny. The print quality is museum-level. Stunned by the detail.' },
+  ]},
+  5: { rating: 4.8, reviewCount: 56, reviews: [
+    { name: 'Zara H.', rating: 5, date: '2026-08-20', comment: 'Ghost in the Shell vibes done right. The neon colors pop against the black frame. Absolutely love it.' },
+    { name: 'Irfan A.', rating: 5, date: '2026-08-05', comment: 'Best anime print I\'ve ever bought. The rain-soaked cityscape is mesmerizing.' },
+    { name: 'Tanya B.', rating: 4, date: '2026-07-22', comment: 'Gorgeous print. The cyberpunk aesthetic fits my setup perfectly. Delivery was fast too.' },
+  ]},
+  6: { rating: 4.5, reviewCount: 21, reviews: [
+    { name: 'Dev M.', rating: 5, date: '2026-08-14', comment: 'The blueprint style is unique and the technical detail is impressive. A conversation starter.' },
+    { name: 'Lakshmi N.', rating: 4, date: '2026-07-18', comment: 'Nice print, good quality. The Evangelion cutaway style is very cool.' },
+  ]},
+  7: { rating: 4.9, reviewCount: 38, reviews: [
+    { name: 'Ananya G.', rating: 5, date: '2026-08-18', comment: 'This Miyazaki-inspired piece is magical. The watercolor aesthetic is so well done. Staff pick for a reason.' },
+    { name: 'Ravi P.', rating: 5, date: '2026-08-01', comment: 'Our family loves Studio Ghibli. This print captures that spirit perfectly. Beautiful framing.' },
+    { name: 'Neha S.', rating: 5, date: '2026-07-12', comment: 'Bought two — one for the nursery, one for my office. Both look amazing. High quality throughout.' },
+  ]},
+  8: { rating: 4.4, reviewCount: 15, reviews: [
+    { name: 'Siddharth K.', rating: 5, date: '2026-08-11', comment: 'The samurai under the blood moon is incredible. Bold lines, perfect composition.' },
+    { name: 'Pooja V.', rating: 4, date: '2026-07-25', comment: 'Love the ukiyo-e influence. Solid print quality. The 5% discount made it even better.' },
+  ]},
+  9: { rating: 4.3, reviewCount: 12, reviews: [
+    { name: 'Marcus W.', rating: 4, date: '2026-08-09', comment: 'Clean risograph aesthetic. The two-color print looks great in my studio apartment.' },
+    { name: 'Kavita R.', rating: 5, date: '2026-07-19', comment: 'Love the minimalist concert poster vibe. Unique and stylish.' },
+  ]},
+  10: { rating: 4.7, reviewCount: 24, reviews: [
+    { name: 'Thomas L.', rating: 5, date: '2026-08-16', comment: 'Swiss typography perfection. Clean, precise, and endlessly wall-worthy. Exactly as described.' },
+    { name: 'Divya M.', rating: 4, date: '2026-07-29', comment: 'Beautiful print. The 25% discount was a nice surprise. Looks sharp on my office wall.' },
+  ]},
+  11: { rating: 4.6, reviewCount: 18, reviews: [
+    { name: 'Olivia C.', rating: 5, date: '2026-08-13', comment: 'Retro-futuristic travel poster that sparks imagination. The offset print aesthetic is charming.' },
+    { name: 'Amit J.', rating: 4, date: '2026-07-16', comment: 'Great design, solid quality. A bit pricey at full price but worth it for the aesthetic.' },
+  ]},
+  12: { rating: 4.8, reviewCount: 22, reviews: [
+    { name: 'James R.', rating: 5, date: '2026-08-17', comment: 'Bold, loud, unforgettable — just like the description says. The 70s exploitation cinema vibe is nailed.' },
+    { name: 'Ritu D.', rating: 5, date: '2026-08-03', comment: 'This poster has serious personality. The noir aesthetic is perfectly executed.' },
+  ]},
+  13: { rating: 4.5, reviewCount: 26, reviews: [
+    { name: 'Neil P.', rating: 5, date: '2026-08-19', comment: 'Vintage NASA-inspired and absolutely gorgeous. Retro science meets modern framing — love it.' },
+    { name: 'Simran K.', rating: 4, date: '2026-07-24', comment: 'Beautiful astronomy print. The retro aesthetic is perfectly done. Good quality frame.' },
+  ]},
+  14: { rating: 4.4, reviewCount: 11, reviews: [
+    { name: 'Rahul S.', rating: 5, date: '2026-08-07', comment: 'Clean R35 side profile. Minimal and bold. Perfect for my garage wall.' },
+    { name: 'Priyanka M.', rating: 4, date: '2026-07-14', comment: 'Nice print quality for the price. Unframed so you\'ll need your own frame, but the paper is thick.' },
+  ]},
+  15: { rating: 4.3, reviewCount: 9, reviews: [
+    { name: 'Vikash T.', rating: 4, date: '2026-08-06', comment: 'Dark tones, sharp lines — exactly what I wanted for a moody corner. Good value with the 10% off.' },
+  ]},
+  16: { rating: 4.7, reviewCount: 14, reviews: [
+    { name: 'Aisha R.', rating: 5, date: '2026-08-10', comment: 'Vibrant cyberpunk runner. The neon colors are incredible. Great for the price.' },
+    { name: 'Karthik P.', rating: 5, date: '2026-07-27', comment: 'High contrast, high impact. This print punches way above its price point.' },
+  ]},
+  17: { rating: 4.8, reviewCount: 16, reviews: [
+    { name: 'Tanvi L.', rating: 5, date: '2026-08-14', comment: 'The spirit deer is adorable. Watercolor aesthetic is perfectly done. My daughter loves it.' },
+    { name: 'Manish G.', rating: 5, date: '2026-08-01', comment: 'Bought for the nursery. Soft, gentle, and beautifully printed. Highly recommend.' },
+  ]},
+  18: { rating: 4.5, reviewCount: 8, reviews: [
+    { name: 'Sanjay K.', rating: 5, date: '2026-08-08', comment: 'Café racer in a moody garage — warm tones, film grain. Exactly my aesthetic.' },
+    { name: 'Deepa N.', rating: 4, date: '2026-07-20', comment: 'Great vintage motorcycle print. The film grain effect is really well done.' },
+  ]},
+  19: { rating: 4.6, reviewCount: 13, reviews: [
+    { name: 'Emma S.', rating: 5, date: '2026-08-12', comment: 'Abstract floral in risograph style. Unique and beautiful. The 15% discount is a bonus.' },
+    { name: 'Arjun V.', rating: 4, date: '2026-07-31', comment: 'Nice two-color print. Looks great in my living room. Good paper quality.' },
+  ]},
+};
+
+export const getReviewsForProduct = (productId) => reviewData[productId] || null;

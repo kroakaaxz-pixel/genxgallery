@@ -32,9 +32,8 @@ export default function Footer() {
             <h4>Info</h4>
             <ul>
               <li><Link to="/about">Our Story</Link></li>
-              <li><a href="#">Shipping</a></li>
-              <li><a href="#">Returns</a></li>
-              <li><a href="#">FAQ</a></li>
+              <li><Link to="/shipping">Shipping</Link></li>
+              <li><Link to="/returns">Returns &amp; Refunds</Link></li>
             </ul>
           </div>
 

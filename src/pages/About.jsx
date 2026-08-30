@@ -1,6 +1,12 @@
+import { useHead } from '../hooks/useHead';
 import styles from './About.module.css';
 
 export default function About() {
+  useHead({
+    title: 'Our Story',
+    description: 'Gen X Gallery started with a simple frustration: why is it so hard to find framed art that doesn\'t look like it came from a hotel lobby? Learn about our mission.',
+  });
+
   return (
     <main className={styles.page}>
       <div className={styles.hero}>

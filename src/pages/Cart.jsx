@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../utils/currency';
+import { useHead } from '../hooks/useHead';
 import styles from './Cart.module.css';
 
 export default function Cart() {
   const { items, removeItem, updateQuantity, totalPrice } = useCart();
+  useHead({ title: 'Cart', description: 'Your shopping cart at Gen X Gallery.' });
 
   if (items.length === 0) {
     return (
@@ -102,6 +104,9 @@ export default function Cart() {
             <button className={styles.checkoutBtn}>
               Proceed to Checkout
             </button>
+            <p style={{ fontSize: '0.8rem', color: 'var(--color-ink-muted)', textAlign: 'center', marginTop: '12px' }}>
+              Free shipping on orders above ₹999 · <Link to="/returns" style={{ color: 'var(--color-accent-text)' }}>Free returns within 7 days</Link>
+            </p>
             <Link to="/catalogue" className={styles.continueLink}>
               Continue Shopping
             </Link>

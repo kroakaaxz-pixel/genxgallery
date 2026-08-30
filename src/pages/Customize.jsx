@@ -1,8 +1,10 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { products, frameSizes, frameMaterials, textures, getSizePrice } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { uploadImage } from '../hooks/uploadImage';
 import { formatPrice } from '../utils/currency';
+import { useHead } from '../hooks/useHead';
 import styles from './Customize.module.css';
 
 // Only framed-posters products are available for customization
@@ -24,6 +26,7 @@ function getCoverFit(sourceW, sourceH, frameW, frameH) {
 export default function Customize() {
   const { addItem } = useCart();
   const fileInputRef = useRef(null);
+  useHead({ title: 'Custom Frame', description: 'Design your own custom frame at Gen X Gallery. Choose your print, frame material, size, and finish.' });
 
   const [source, setSource] = useState('browse');
   const [selectedDesign, setSelectedDesign] = useState(products[0]);
@@ -360,6 +363,9 @@ export default function Customize() {
             <button onClick={handleAddToCart} className={styles.addToCartBtn}>
               Add to Cart — {formatPrice(totalPrice)}
             </button>
+            <p style={{ fontSize: '0.8rem', color: 'var(--color-ink-muted)', textAlign: 'center', marginTop: '12px' }}>
+              Custom orders are made to spec · <Link to="/returns" style={{ color: 'var(--color-accent-text)' }}>Final sale — see returns policy</Link>
+            </p>
           </div>
         </div>
       </div>
