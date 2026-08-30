@@ -1,4 +1,4 @@
-import { useParams, Navigate, Link } from 'react-router-dom';
+import { useParams, useLocation, Navigate, Link } from 'react-router-dom';
 import { getCategoryById, getProductsBySubCategory, getProductsByCategory, categories, subCategories, getSubCategoryById } from '../data/products';
 import ProductCard from '../components/ProductCard';
 import styles from './Category.module.css';
@@ -20,12 +20,13 @@ const subCategoryDescriptions = {
 };
 
 export default function Category() {
-  const { category: catParam, subCategory: subParam, id } = useParams();
+  const { subCategory: subParam, id } = useParams();
+  const { pathname } = useLocation();
 
-  // Support both /:category/:subCategory and legacy /category/:id
   const isLegacyRoute = !!id;
-  const categoryId = isLegacyRoute ? id : catParam;
-  const subCategoryId = isLegacyRoute ? null : subParam;
+  const segments = pathname.split('/').filter(Boolean);
+  const categoryId = isLegacyRoute ? id : segments[0];
+  const subCategoryId = isLegacyRoute ? null : (subParam || null);
 
   const category = getCategoryById(categoryId);
   if (!category) return <Navigate to="/404" replace />;
