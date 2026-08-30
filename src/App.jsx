@@ -28,6 +28,15 @@ function ScrollToTop() {
   return null;
 }
 
+function PageTransition({ children }) {
+  const { pathname } = useLocation();
+  return (
+    <div key={pathname} style={{ animation: 'pageFadeIn 0.3s ease' }}>
+      {children}
+    </div>
+  );
+}
+
 function SiteStatusGate({ mode, children }) {
   const { pathname } = useLocation();
   const isAdmin = pathname.startsWith('/admin');
@@ -80,24 +89,26 @@ function App() {
         <SiteStatusGate mode={siteMode}>
           <ScrollToTop />
           <Header />
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/catalogue" element={<Catalogue />} />
-            <Route path="/category/:id" element={<Category />} />
-            <Route path="/posters" element={<Category />} />
-            <Route path="/posters/:subCategory" element={<Category />} />
-            <Route path="/framed-posters" element={<Category />} />
-            <Route path="/framed-posters/:subCategory" element={<Category />} />
-            <Route path="/product/:id" element={<ProductDetail />} />
-            <Route path="/customize" element={<Customize />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/shipping" element={<Shipping />} />
-            <Route path="/returns" element={<Returns />} />
-            <Route path="/admin" element={<Suspense fallback={<div style={{ padding: '4rem', textAlign: 'center' }}>Loading admin…</div>}><Admin onStatusChange={setSiteMode} /></Suspense>} />
-            <Route path="/404" element={<NotFound />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <PageTransition>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/catalogue" element={<Catalogue />} />
+              <Route path="/category/:id" element={<Category />} />
+              <Route path="/posters" element={<Category />} />
+              <Route path="/posters/:subCategory" element={<Category />} />
+              <Route path="/framed-posters" element={<Category />} />
+              <Route path="/framed-posters/:subCategory" element={<Category />} />
+              <Route path="/product/:id" element={<ProductDetail />} />
+              <Route path="/customize" element={<Customize />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/shipping" element={<Shipping />} />
+              <Route path="/returns" element={<Returns />} />
+              <Route path="/admin" element={<Suspense fallback={<div style={{ padding: '4rem', textAlign: 'center' }}>Loading admin…</div>}><Admin onStatusChange={setSiteMode} /></Suspense>} />
+              <Route path="/404" element={<NotFound />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </PageTransition>
           <Footer />
         </SiteStatusGate>
       </CartProvider>

@@ -5,6 +5,7 @@
   grid-template-columns: 1fr 1fr;
   gap: 0;
   padding-top: var(--header-height);
+  overflow: hidden;
 }
 
 .heroContent {
@@ -36,6 +37,10 @@
   color: var(--color-accent);
 }
 
+.heroLine {
+  display: inline;
+}
+
 .heroSubtitle {
   font-size: 1.15rem;
   line-height: 1.7;
@@ -50,61 +55,41 @@
   align-items: center;
 }
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-sm);
-  padding: 14px 28px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  border-radius: 2px;
-  transition: all 0.25s ease;
+/* Hero entrance animations (staggered fade+rise) */
+.heroFadeUp {
+  opacity: 0;
+  transform: translateY(24px);
+  animation: heroFadeUp 0.7s ease forwards;
 }
 
-.btnPrimary {
-  background: var(--color-accent);
-  color: white;
+.heroFadeUp1 { animation-delay: 0.1s; }
+.heroFadeUp2 { animation-delay: 0.25s; }
+.heroFadeUp3 { animation-delay: 0.35s; }
+.heroFadeUp4 { animation-delay: 0.45s; }
+.heroFadeUp5 { animation-delay: 0.55s; }
+.heroFadeUp6 { animation-delay: 0.7s; }
+
+@keyframes heroFadeUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.btnPrimary:hover {
-  background: var(--color-accent-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(194, 59, 34, 0.3);
-}
-
-.btnPrimary:focus-visible {
-  outline: 2px solid var(--color-ink);
-  outline-offset: 2px;
-}
-
-.btnSecondary {
-  border: 1.5px solid var(--color-ink);
-  color: var(--color-ink);
-}
-
-.btnSecondary:hover {
-  background: var(--color-ink);
-  color: var(--color-cream);
-}
-
-.btnSecondary:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 2px;
-}
-
+/* Hero image — Ken Burns slow zoom */
 .heroImage {
   position: relative;
   overflow: hidden;
   background: var(--color-cream-dark);
 }
 
-.heroImage img {
+.heroImg {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transform: scale(1);
+  transition: transform 8s ease-out;
+  will-change: transform;
 }
 
 .heroFigLabel {
@@ -273,13 +258,18 @@
 }
 
 .categoryCard:hover .categoryCardBg {
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
 .categoryCardOverlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(to top, rgba(26, 26, 26, 0.8) 0%, rgba(26, 26, 26, 0.1) 60%);
+  transition: opacity 0.4s ease;
+}
+
+.categoryCard:hover .categoryCardOverlay {
+  opacity: 0.85;
 }
 
 .categoryCardContent {
@@ -301,6 +291,11 @@
   font-size: 2rem;
   font-weight: 600;
   margin-bottom: var(--space-xs);
+  transition: transform 0.4s ease;
+}
+
+.categoryCard:hover .categoryCardName {
+  transform: translateY(-4px);
 }
 
 .categoryCardTagline {
@@ -331,6 +326,11 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.storyImage:hover img {
+  transform: scale(1.03);
 }
 
 .storyImageCaption {
@@ -378,6 +378,37 @@
   font-style: italic;
   font-size: 1.1rem;
   color: var(--color-ink-muted);
+}
+
+/* ═══════════ Reduced Motion ═══════════ */
+@media (prefers-reduced-motion: reduce) {
+  .heroFadeUp {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+
+  .heroImg {
+    transition: none;
+  }
+
+  .featuredItemImage,
+  .categoryCardBg,
+  .categoryCardOverlay,
+  .categoryCardName,
+  .storyImage img {
+    transition: none;
+  }
+
+  .featuredItem:hover .featuredItemImage,
+  .categoryCard:hover .categoryCardBg,
+  .storyImage:hover img {
+    transform: none;
+  }
+
+  .categoryCard:hover .categoryCardName {
+    transform: none;
+  }
 }
 
 /* Responsive */

@@ -2,6 +2,7 @@ import { memo, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { frameSizes, getDiscountedPrice } from '../data/products';
 import { formatPrice } from '../utils/currency';
+import FadeImage from './FadeImage';
 import styles from './ProductCard.module.css';
 
 const ProductCard = memo(function ProductCard({ product, className = '' }) {
@@ -18,7 +19,7 @@ const ProductCard = memo(function ProductCard({ product, className = '' }) {
       className={`${styles.card} ${className}`}
     >
       <div className={styles.imageWrap}>
-        <img
+        <FadeImage
           src={product.image}
           alt={product.name}
           className={styles.image}

@@ -1,9 +1,12 @@
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { getActiveProducts, getNewArrivals, getSpecialDeals, categories, subCategories, getDiscountedPrice } from '../data/products';
 import { formatPrice } from '../utils/currency';
 import { useHead } from '../hooks/useHead';
+import { useReveal, useStaggerReveal } from '../hooks/useReveal';
 import ProductCard from '../components/ProductCard';
 import ProductCarousel from '../components/ProductCarousel';
+import FadeImage from '../components/FadeImage';
 import styles from './Home.module.css';
 
 const allProducts = getActiveProducts();
@@ -13,6 +16,92 @@ const featuredProducts = allProducts.filter((p) =>
 const newArrivals = getNewArrivals();
 const specialDeals = getSpecialDeals();
 
+const prefersReducedMotion = typeof window !== 'undefined'
+  && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function Hero() {
+  const heroRef = useRef(null);
+  const imageRef = useRef(null);
+
+  // Ken Burns slow zoom on load
+  useEffect(() => {
+    if (prefersReducedMotion || !imageRef.current) return;
+    imageRef.current.style.transform = 'scale(1)';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        if (imageRef.current) {
+          imageRef.current.style.transform = 'scale(1.06)';
+        }
+      });
+    });
+  }, []);
+
+  // Parallax on scroll (RAF-throttled)
+  useEffect(() => {
+    if (prefersReducedMotion || !heroRef.current) return;
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          if (imageRef.current) {
+            const scrolled = window.scrollY;
+            const rate = scrolled * 0.18;
+            imageRef.current.style.transform = `translateY(${rate}px) scale(1.06)`;
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  return (
+    <section className={styles.hero} ref={heroRef}>
+      <div className={styles.heroContent}>
+        <p className={`${styles.heroLabel} ${styles.heroFadeUp} ${styles.heroFadeUp1}`}>
+          Est. 2026 — Wall Decor for People Who Care
+        </p>
+        <h1 className={styles.heroTitle}>
+          <span className={`${styles.heroLine} ${styles.heroFadeUp} ${styles.heroFadeUp2}`}>
+            Art that
+          </span>
+          <br />
+          <span className={`${styles.heroLine} ${styles.heroFadeUp} ${styles.heroFadeUp3}`}>
+            <em>belongs</em> on
+          </span>
+          <br />
+          <span className={`${styles.heroLine} ${styles.heroFadeUp} ${styles.heroFadeUp4}`}>
+            your wall.
+          </span>
+        </h1>
+        <p className={`${styles.heroSubtitle} ${styles.heroFadeUp} ${styles.heroFadeUp5}`}>
+          Premium framed prints for people who care about what's on their walls.
+          Pop culture, automotive, anime, and typographic art — gallery-ready.
+        </p>
+        <div className={`${styles.heroActions} ${styles.heroFadeUp} ${styles.heroFadeUp6}`}>
+          <Link to="/catalogue" className={`${styles.btn} ${styles.btnPrimary}`}>
+            Browse Collection
+          </Link>
+          <Link to="/customize" className={`${styles.btn} ${styles.btnSecondary}`}>
+            Custom Frame
+          </Link>
+        </div>
+      </div>
+      <div className={styles.heroImage}>
+        <img
+          ref={imageRef}
+          src="https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=900&h=1200&fit=crop"
+          alt="Gallery wall with framed prints"
+          className={styles.heroImg}
+        />
+        <span className={styles.heroFigLabel}>Fig. 01 — The Collection</span>
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   useHead({
     title: null,
@@ -20,38 +109,15 @@ export default function Home() {
     image: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=1200&h=630&fit=crop',
   });
 
+  const featuredRef = useStaggerReveal({ staggerMs: 70, childSelector: `.${styles.featuredItem}` });
+  const newArrivalsRef = useReveal();
+  const specialDealsRef = useReveal();
+  const categoriesRef = useStaggerReveal({ staggerMs: 80, childSelector: `.${styles.categoryCard}` });
+  const storyRef = useReveal();
+
   return (
     <main>
-      {/* Hero */}
-      <section className={styles.hero}>
-        <div className={styles.heroContent}>
-          <p className={styles.heroLabel}>Est. 2026 — Wall Decor for People Who Care</p>
-          <h1 className={styles.heroTitle}>
-            Art that<br />
-            <em>belongs</em> on<br />
-            your wall.
-          </h1>
-          <p className={styles.heroSubtitle}>
-            Premium framed prints for people who care about what's on their walls.
-            Pop culture, automotive, anime, and typographic art — gallery-ready.
-          </p>
-          <div className={styles.heroActions}>
-            <Link to="/catalogue" className={`${styles.btn} ${styles.btnPrimary}`}>
-              Browse Collection
-            </Link>
-            <Link to="/customize" className={`${styles.btn} ${styles.btnSecondary}`}>
-              Custom Frame
-            </Link>
-          </div>
-        </div>
-        <div className={styles.heroImage}>
-          <img
-            src="https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=900&h=1200&fit=crop"
-            alt="Gallery wall with framed prints"
-          />
-          <span className={styles.heroFigLabel}>Fig. 01 — The Collection</span>
-        </div>
-      </section>
+      <Hero />
 
       {/* Featured */}
       <section className={styles.featured}>
@@ -65,14 +131,14 @@ export default function Home() {
               View All →
             </Link>
           </div>
-          <div className={styles.editorialGrid}>
+          <div className={styles.editorialGrid} ref={featuredRef}>
             {featuredProducts.map((product, index) => (
               <Link
                 key={product.id}
                 to={`/product/${product.id}`}
                 className={styles.featuredItem}
               >
-                <img
+                <FadeImage
                   src={product.image}
                   alt={product.name}
                   className={styles.featuredItemImage}
@@ -104,7 +170,7 @@ export default function Home() {
 
       {/* New Arrivals */}
       {newArrivals.length > 0 && (
-        <section className={styles.carouselSection}>
+        <section className={styles.carouselSection} ref={newArrivalsRef}>
           <div className="container">
             <div className={styles.sectionHeader}>
               <div>
@@ -122,7 +188,7 @@ export default function Home() {
 
       {/* Special Deals */}
       {specialDeals.length > 0 && (
-        <section className={`${styles.carouselSection} ${styles.carouselSectionAlt}`}>
+        <section className={`${styles.carouselSection} ${styles.carouselSectionAlt}`} ref={specialDealsRef}>
           <div className="container">
             <div className={styles.sectionHeader}>
               <div>
@@ -147,7 +213,7 @@ export default function Home() {
               <h2 className={styles.sectionTitle}>By Category</h2>
             </div>
           </div>
-          <div className={styles.categoryGrid}>
+          <div className={styles.categoryGrid} ref={categoriesRef}>
             {categories.map((cat, index) => (
               <Link
                 key={cat.id}
@@ -173,11 +239,11 @@ export default function Home() {
       </section>
 
       {/* Brand Story */}
-      <section className={styles.story}>
+      <section className={styles.story} ref={storyRef}>
         <div className="container">
           <div className={styles.storyGrid}>
             <div className={styles.storyImage}>
-              <img
+              <FadeImage
                 src="https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=800&h=1000&fit=crop"
                 alt="Framed prints on a gallery wall"
                 loading="lazy"
