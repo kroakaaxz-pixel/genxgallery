@@ -9,7 +9,10 @@ export default function Footer() {
       <div className="container">
         <div className={styles.footerGrid}>
           <div className={styles.brand}>
-            <img src={logoUrl} alt="Gen X Gallery" className={styles.brandLogoImg} />
+            <div className={styles.brandLogo}>
+              <img src={logoUrl} alt="" className={styles.brandLogoImg} />
+              <span className={styles.brandLogoText}>GEN X <span className={styles.brandLogoAccent}>GALLERY</span></span>
+            </div>
             <p className={styles.brandTagline}>
               Premium framed prints for people who care about what's on their walls.
               Pop culture, automotive, anime, and typographic art — gallery-ready.

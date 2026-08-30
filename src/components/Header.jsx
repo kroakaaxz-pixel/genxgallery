@@ -157,7 +157,8 @@ export default function Header() {
       <header className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}>
         <div className={styles.inner}>
           <Link to="/" className={styles.logo}>
-            <img src={logoUrl} alt="Gen X Gallery" className={styles.logoImg} />
+            <img src={logoUrl} alt="" className={styles.logoImg} />
+            <span className={styles.logoText}>GEN X <span className={styles.logoAccent}>GALLERY</span></span>
           </Link>
 
           <nav className={styles.nav}>

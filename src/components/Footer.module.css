@@ -16,12 +16,32 @@
   max-width: 300px;
 }
 
+.brandLogo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: var(--space-md);
+}
+
 .brandLogoImg {
-  height: 48px;
+  height: 44px;
   width: auto;
   display: block;
-  margin-bottom: var(--space-md);
   filter: brightness(0) invert(1);
+}
+
+.brandLogoText {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--color-cream);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.brandLogoAccent {
+  color: var(--color-accent);
 }
 
 .brandTagline {
