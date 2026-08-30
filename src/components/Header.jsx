@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import styles from './Header.module.css';
@@ -8,16 +8,61 @@ export default function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const mobileNavRef = useRef(null);
 
+  // Close on route change
   useEffect(() => {
     setMobileOpen(false);
   }, [location]);
+
+  // Close on tap outside
+  useEffect(() => {
+    if (!mobileOpen) return;
+
+    const handleOutsideClick = (e) => {
+      if (mobileNavRef.current && !mobileNavRef.current.contains(e.target)) {
+        setMobileOpen(false);
+      }
+    };
+
+    // Delay to avoid the opening click from immediately closing
+    const timer = setTimeout(() => {
+      document.addEventListener('click', handleOutsideClick);
+    }, 10);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('click', handleOutsideClick);
+    };
+  }, [mobileOpen]);
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') setMobileOpen(false);
+    };
+    document.addEventListener('keydown', handleEsc);
+    return () => document.removeEventListener('keydown', handleEsc);
+  }, [mobileOpen]);
+
+  // Lock body scroll when mobile nav is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileOpen]);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const closeMobile = () => setMobileOpen(false);
 
   return (
     <header className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}>
@@ -96,6 +141,7 @@ export default function Header() {
               className={styles.mobileMenuButton}
               onClick={() => setMobileOpen(!mobileOpen)}
               aria-label="Toggle menu"
+              aria-expanded={mobileOpen}
             >
               {mobileOpen ? (
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -115,13 +161,15 @@ export default function Header() {
       </div>
 
       {mobileOpen && (
-        <div className={styles.mobileNav}>
-          <NavLink to="/catalogue" className={styles.navLink}>Shop All</NavLink>
-          <NavLink to="/category/cars" className={styles.navLink}>Cars</NavLink>
-          <NavLink to="/category/anime" className={styles.navLink}>Anime</NavLink>
-          <NavLink to="/category/posters" className={styles.navLink}>Posters</NavLink>
-          <NavLink to="/customize" className={styles.navLink}>Customize</NavLink>
-          <NavLink to="/about" className={styles.navLink}>About</NavLink>
+        <div className={styles.mobileNavBackdrop} ref={mobileNavRef}>
+          <nav className={styles.mobileNav}>
+            <NavLink to="/catalogue" className={styles.navLink} onClick={closeMobile}>Shop All</NavLink>
+            <NavLink to="/category/cars" className={styles.navLink} onClick={closeMobile}>Cars</NavLink>
+            <NavLink to="/category/anime" className={styles.navLink} onClick={closeMobile}>Anime</NavLink>
+            <NavLink to="/category/posters" className={styles.navLink} onClick={closeMobile}>Posters</NavLink>
+            <NavLink to="/customize" className={styles.navLink} onClick={closeMobile}>Customize</NavLink>
+            <NavLink to="/about" className={styles.navLink} onClick={closeMobile}>About</NavLink>
+          </nav>
         </div>
       )}
     </header>

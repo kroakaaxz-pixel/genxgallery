@@ -164,7 +164,7 @@
     font-size: 1.25rem;
   }
 
-  .mobileNav {
+  .mobileNavBackdrop {
     position: fixed;
     top: var(--header-height);
     left: 0;
@@ -172,6 +172,9 @@
     bottom: 0;
     background: var(--color-cream);
     z-index: 99;
+  }
+
+  .mobileNav {
     display: flex;
     flex-direction: column;
     padding: var(--space-2xl);

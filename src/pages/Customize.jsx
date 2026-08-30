@@ -91,15 +91,13 @@ export default function Customize() {
 
   const getFrameDimensions = () => {
     const size = frameSizes.find((s) => s.id === selectedSize);
-    if (!size) return { width: 200, height: 280 };
+    if (!size) return { width: 200, height: 280, scale: 0.7 };
 
-    // Scale both sizes relative to A4 as the "full" preview size.
-    // A4 (8×12) fills the preview area; A5 (6×8) renders proportionally smaller.
+    // Always compute at A4 (max) size — we'll scale via CSS transform
     const a4Size = frameSizes.find((s) => s.id === 'a4');
     const maxPreviewWidth = 280;
     const maxPreviewHeight = 380;
 
-    // First compute A4 dimensions as the baseline
     const a4Ratio = a4Size.width / a4Size.height;
     let a4Width = maxPreviewWidth;
     let a4Height = maxPreviewWidth / a4Ratio;
@@ -108,22 +106,22 @@ export default function Customize() {
       a4Width = maxPreviewHeight * a4Ratio;
     }
 
-    // Scale the selected size relative to A4 based on actual print area
-    const scaleFactor = (size.width * size.height) / (a4Size.width * a4Size.height);
-    const width = a4Width * Math.sqrt(scaleFactor);
-    const height = a4Height * Math.sqrt(scaleFactor);
+    // Scale factor relative to A4
+    const scaleFactor = Math.sqrt((size.width * size.height) / (a4Size.width * a4Size.height));
 
-    return { width: Math.round(width), height: Math.round(height) };
+    return { width: Math.round(a4Width), height: Math.round(a4Height), scale: scaleFactor };
   };
 
   const frameDims = getFrameDimensions();
   const material = frameMaterials.find((m) => m.id === selectedMaterial);
 
-  // Material-specific frame styles
+  // Material-specific frame styles — always render at A4 size, scale via transform
   const getMaterialStyle = () => {
     const base = {
       width: frameDims.width + 32,
       height: frameDims.height + 32,
+      transform: `scale(${frameDims.scale})`,
+      transformOrigin: 'center center',
     };
     switch (selectedMaterial) {
       case 'black':
