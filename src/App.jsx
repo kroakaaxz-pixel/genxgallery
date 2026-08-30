@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect, Suspense, lazy, useState } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
 import { AuthProvider } from './context/AuthContext';
@@ -20,7 +21,7 @@ import Shipping from './pages/Shipping';
 import Returns from './pages/Returns';
 import Privacy from './pages/Privacy';
 import Terms from './pages/Terms';
-import Analytics from './components/Analytics';
+import CustomAnalytics from './components/Analytics';
 import { getSiteStatus } from './lib/supabase';
 import './styles/global.css';
 
@@ -98,6 +99,7 @@ function App() {
           <AuthProvider>
             <SiteStatusGate mode={siteMode}>
           <ScrollToTop />
+          <CustomAnalytics />
           <Analytics />
           <Header />
           <PageTransition>
