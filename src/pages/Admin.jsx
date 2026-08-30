@@ -593,22 +593,41 @@ export default function Admin({ onStatusChange }) {
                       {isEditing ? (
                         <div className={styles.orderEditFields}>
                           <div className={styles.formField}>
+                            <label>House/Flat/Building</label>
+                            <input value={order.address.houseNo || ''} onChange={(e) => handleOrderAddressChange('houseNo', e.target.value)} className={styles.input} />
+                          </div>
+                          <div className={styles.formField}>
                             <label>Street</label>
                             <input value={order.address.street} onChange={(e) => handleOrderAddressChange('street', e.target.value)} className={styles.input} />
+                          </div>
+                          <div className={styles.formField}>
+                            <label>Landmark</label>
+                            <input value={order.address.landmark || ''} onChange={(e) => handleOrderAddressChange('landmark', e.target.value)} className={styles.input} />
                           </div>
                           <div className={styles.formField}>
                             <label>City</label>
                             <input value={order.address.city} onChange={(e) => handleOrderAddressChange('city', e.target.value)} className={styles.input} />
                           </div>
                           <div className={styles.formField}>
+                            <label>State</label>
+                            <input value={order.address.state} onChange={(e) => handleOrderAddressChange('state', e.target.value)} className={styles.input} />
+                          </div>
+                          <div className={styles.formField}>
                             <label>Pincode</label>
                             <input value={order.address.pincode} onChange={(e) => handleOrderAddressChange('pincode', e.target.value)} className={styles.input} />
+                          </div>
+                          <div className={styles.formField}>
+                            <label>Phone</label>
+                            <input value={order.address.phone || ''} onChange={(e) => handleOrderAddressChange('phone', e.target.value)} className={styles.input} />
                           </div>
                         </div>
                       ) : (
                         <div className={styles.orderInfoList}>
+                          {order.address.houseNo && <p>{order.address.houseNo}</p>}
                           <p>{order.address.street}</p>
+                          {order.address.landmark && <p>{order.address.landmark}</p>}
                           <p>{order.address.city}, {order.address.state} {order.address.pincode}</p>
+                          {order.address.phone && <p>Phone: {order.address.phone}</p>}
                         </div>
                       )}
                     </div>

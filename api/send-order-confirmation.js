@@ -2,6 +2,21 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+function formatAddress(addr) {
+  if (!addr) return null;
+  // Handle both structured object and legacy string
+  if (typeof addr === 'string') return addr;
+  const lines = [];
+  if (addr.houseNo) lines.push(addr.houseNo);
+  if (addr.street) lines.push(addr.street);
+  if (addr.landmark) lines.push(`Landmark: ${addr.landmark}`);
+  if (addr.city || addr.state || addr.pincode) {
+    lines.push([addr.city, addr.state].filter(Boolean).join(', ') + (addr.pincode ? ` - ${addr.pincode}` : ''));
+  }
+  if (addr.phone) lines.push(`Phone: ${addr.phone}`);
+  return lines.join('<br/>');
+}
+
 function buildOrderEmail({ orderId, customerName, items, totalPrice, shippingAddress }) {
   const date = new Date().toLocaleDateString('en-IN', {
     year: 'numeric',
@@ -27,7 +42,8 @@ function buildOrderEmail({ orderId, customerName, items, totalPrice, shippingAdd
     )
     .join('');
 
-  const addressBlock = shippingAddress
+  const formattedAddress = formatAddress(shippingAddress);
+  const addressBlock = formattedAddress
     ? `
     <tr>
       <td style="padding:0 0 24px 0;">
@@ -35,7 +51,7 @@ function buildOrderEmail({ orderId, customerName, items, totalPrice, shippingAdd
           Delivery Address
         </p>
         <p style="margin:0;font-family:Inter,sans-serif;font-size:14px;color:#3D3D3D;line-height:1.6;">
-          ${shippingAddress}
+          ${formattedAddress}
         </p>
       </td>
     </tr>`

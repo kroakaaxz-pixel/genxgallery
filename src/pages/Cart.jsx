@@ -5,25 +5,111 @@ import { formatPrice } from '../utils/currency';
 import { useHead } from '../hooks/useHead';
 import styles from './Cart.module.css';
 
+const INDIAN_STATES = [
+  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
+  'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand',
+  'Karnataka', 'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur',
+  'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Punjab',
+  'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura',
+  'Uttar Pradesh', 'Uttarakhand', 'West Bengal',
+  'Andaman and Nicobar Islands', 'Chandigarh',
+  'Dadra and Nagar Haveli and Daman and Diu', 'Delhi',
+  'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry',
+];
+
+const inputStyle = {
+  width: '100%',
+  padding: '12px 14px',
+  fontSize: '0.9rem',
+  border: '1.5px solid var(--color-border)',
+  borderRadius: '2px',
+  background: 'white',
+  color: 'var(--color-ink)',
+  fontFamily: 'inherit',
+  outline: 'none',
+  boxSizing: 'border-box',
+};
+
+const labelStyle = {
+  display: 'block',
+  fontSize: '0.75rem',
+  fontWeight: 600,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase',
+  color: 'var(--color-ink-muted)',
+  marginBottom: '6px',
+};
+
+const errorStyle = {
+  fontSize: '0.75rem',
+  color: 'var(--color-accent)',
+  marginTop: '4px',
+};
+
+function FormField({ label, required, error, children }) {
+  return (
+    <div>
+      <label style={labelStyle}>
+        {label} {required && <span style={{ color: 'var(--color-accent)' }}>*</span>}
+      </label>
+      {children}
+      {error && <p style={errorStyle}>{error}</p>}
+    </div>
+  );
+}
+
 export default function Cart() {
   const { items, removeItem, updateQuantity, totalPrice, clearCart } = useCart();
   useHead({ title: 'Cart', description: 'Your shopping cart at Gen X Gallery.' });
 
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
-  const [address, setAddress] = useState('');
+  const [phone, setPhone] = useState('');
+  const [houseNo, setHouseNo] = useState('');
+  const [street, setStreet] = useState('');
+  const [landmark, setLandmark] = useState('');
+  const [city, setCity] = useState('');
+  const [state, setState] = useState('');
+  const [pincode, setPincode] = useState('');
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderId, setOrderId] = useState(null);
   const [sending, setSending] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const e = {};
+    if (!name.trim()) e.name = 'Name is required';
+    if (!email.trim()) e.email = 'Email is required';
+    if (!phone.trim()) e.phone = 'Phone number is required';
+    else if (!/^\d{10}$/.test(phone.trim())) e.phone = 'Enter a valid 10-digit phone number';
+    if (!houseNo.trim()) e.houseNo = 'House/Flat/Building is required';
+    if (!street.trim()) e.street = 'Street address is required';
+    if (!city.trim()) e.city = 'City is required';
+    if (!state) e.state = 'State is required';
+    if (!pincode.trim()) e.pincode = 'Pincode is required';
+    else if (!/^\d{6}$/.test(pincode.trim())) e.pincode = 'Enter a valid 6-digit pincode';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const buildAddress = () => ({
+    houseNo: houseNo.trim(),
+    street: street.trim(),
+    landmark: landmark.trim() || null,
+    city: city.trim(),
+    state,
+    pincode: pincode.trim(),
+    phone: phone.trim(),
+  });
 
   const handleCheckout = async () => {
-    if (!email.trim() || sending) return;
+    if (!validate() || sending) return;
 
     setSending(true);
     const id = `GXG-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
     setOrderId(id);
+    const address = buildAddress();
 
-    // Fire order confirmation email — don't block checkout on failure
     try {
       const res = await fetch('/api/send-order-confirmation', {
         method: 'POST',
@@ -34,7 +120,7 @@ export default function Cart() {
           items,
           totalPrice,
           orderId: id,
-          shippingAddress: address.trim() || null,
+          shippingAddress: address,
         }),
       });
       const data = await res.json();
@@ -45,7 +131,6 @@ export default function Cart() {
       console.warn('Failed to send order confirmation email:', err);
     }
 
-    // Complete the checkout regardless of email status
     clearCart();
     setOrderPlaced(true);
     setSending(false);
@@ -172,85 +257,52 @@ export default function Cart() {
             </div>
 
             <div style={{ margin: '20px 0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-ink-muted)', marginBottom: '6px' }}>
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Your name"
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '12px 14px',
-                    fontSize: '0.9rem',
-                    border: '1.5px solid var(--color-border)',
-                    borderRadius: '2px',
-                    background: 'white',
-                    color: 'var(--color-ink)',
-                    fontFamily: 'inherit',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                  }}
-                />
+              {/* Contact */}
+              <FormField label="Full Name" required error={errors.name}>
+                <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" style={inputStyle} />
+              </FormField>
+              <FormField label="Email" required error={errors.email}>
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" style={inputStyle} />
+              </FormField>
+              <FormField label="Phone Number" required error={errors.phone}>
+                <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="10-digit mobile number" maxLength={10} style={inputStyle} />
+              </FormField>
+
+              {/* Address */}
+              <FormField label="House / Flat / Building No." required error={errors.houseNo}>
+                <input type="text" value={houseNo} onChange={(e) => setHouseNo(e.target.value)} placeholder="e.g. 42, Sunrise Apartments" style={inputStyle} />
+              </FormField>
+              <FormField label="Street Address / Area" required error={errors.street}>
+                <input type="text" value={street} onChange={(e) => setStreet(e.target.value)} placeholder="e.g. MG Road, Koramangala" style={inputStyle} />
+              </FormField>
+              <FormField label="Landmark" error={errors.landmark}>
+                <input type="text" value={landmark} onChange={(e) => setLandmark(e.target.value)} placeholder="e.g. Near XYZ Mall (optional)" style={inputStyle} />
+              </FormField>
+
+              {/* City / State / Pincode row */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <FormField label="City" required error={errors.city}>
+                  <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="City" style={inputStyle} />
+                </FormField>
+                <FormField label="Pincode" required error={errors.pincode}>
+                  <input type="text" value={pincode} onChange={(e) => setPincode(e.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="6-digit pincode" maxLength={6} style={inputStyle} />
+                </FormField>
               </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-ink-muted)', marginBottom: '6px' }}>
-                  Email <span style={{ color: 'var(--color-accent)' }}>*</span>
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '12px 14px',
-                    fontSize: '0.9rem',
-                    border: '1.5px solid var(--color-border)',
-                    borderRadius: '2px',
-                    background: 'white',
-                    color: 'var(--color-ink)',
-                    fontFamily: 'inherit',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-ink-muted)', marginBottom: '6px' }}>
-                  Delivery Address
-                </label>
-                <textarea
-                  value={address}
-                  onChange={(e) => setAddress(e.target.value)}
-                  placeholder="Street, city, state, pincode"
-                  rows={2}
-                  style={{
-                    width: '100%',
-                    padding: '12px 14px',
-                    fontSize: '0.9rem',
-                    border: '1.5px solid var(--color-border)',
-                    borderRadius: '2px',
-                    background: 'white',
-                    color: 'var(--color-ink)',
-                    fontFamily: 'inherit',
-                    outline: 'none',
-                    resize: 'vertical',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
+              <FormField label="State" required error={errors.state}>
+                <select value={state} onChange={(e) => setState(e.target.value)} style={{ ...inputStyle, cursor: 'pointer', color: state ? 'var(--color-ink)' : 'var(--color-ink-muted)' }}>
+                  <option value="">Select state</option>
+                  {INDIAN_STATES.map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </FormField>
             </div>
 
             <button
               className={styles.checkoutBtn}
               onClick={handleCheckout}
-              disabled={!email.trim() || sending}
-              style={{ opacity: !email.trim() || sending ? 0.6 : 1, cursor: !email.trim() || sending ? 'not-allowed' : 'pointer' }}
+              disabled={sending}
+              style={{ opacity: sending ? 0.6 : 1, cursor: sending ? 'not-allowed' : 'pointer' }}
             >
               {sending ? 'Placing Order…' : 'Place Order'}
             </button>

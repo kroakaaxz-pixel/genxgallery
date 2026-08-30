@@ -35,6 +35,21 @@ const streets = [
   'HSR Layout', 'Koramangala', 'Indiranagar', 'Whitefield', 'Juhu Lane',
 ];
 
+const houseTypes = ['Flat', 'House', 'Apartment', 'Suite', 'Villa', 'Block'];
+
+const landmarks = [
+  'Near City Mall', 'Opposite Bus Stand', 'Behind State Bank', 'Next to Post Office',
+  'Near Railway Station', 'Opposite Park', 'Near Hospital', 'Behind Temple',
+  'Near School', 'Opposite Market', null, null, null, null,
+];
+
+const indianStates = [
+  'Maharashtra', 'Karnataka', 'Delhi', 'Tamil Nadu', 'Gujarat',
+  'Rajasthan', 'Uttar Pradesh', 'West Bengal', 'Kerala', 'Telangana',
+  'Andhra Pradesh', 'Madhya Pradesh', 'Punjab', 'Haryana', 'Bihar',
+  'Odisha', 'Jharkhand', 'Chhattisgarh', 'Assam', 'Goa',
+];
+
 const cities = [
   'Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai', 'Pune', 'Kolkata',
   'Ahmedabad', 'Jaipur', 'Lucknow', 'Chandigarh', 'Kochi', 'Goa', 'Bhopal',
@@ -149,8 +164,11 @@ function generateOrders() {
     const total = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
 
     const customerName = `${pick(firstNames)} ${pick(lastNames)}`;
-    const street = `${randInt(1, 200)} ${pick(streets)}`;
+    const houseNo = `${randInt(1, 200)} ${pick(houseTypes)} ${randInt(1, 20)}`;
+    const street = pick(streets);
+    const landmark = pick(landmarks);
     const city = pick(cities);
+    const state = pick(indianStates);
     const pincode = randInt(110001, 999999);
 
     // Delivery date: 3-7 days after order for delivered/shipped, null for others
@@ -165,12 +183,15 @@ function generateOrders() {
       id: `GXG-${String(1000 + i).padStart(4, '0')}`,
       customerName,
       email: `${customerName.split(' ')[0].toLowerCase()}${randInt(1, 99)}@email.com`,
-      phone: `+91 ${randInt(70000, 99999)} ${randInt(10000, 99999)}`,
+      phone: `${randInt(70000, 99999)} ${randInt(10000, 99999)}`,
       address: {
+        houseNo,
         street,
+        landmark,
         city,
-        state: 'India',
+        state,
         pincode: String(pincode),
+        phone: `${randInt(70000, 99999)} ${randInt(10000, 99999)}`,
       },
       date: orderDate.toISOString().split('T')[0],
       deliveredDate: deliveredDate ? deliveredDate.toISOString().split('T')[0] : null,
