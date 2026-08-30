@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../utils/currency';
@@ -5,8 +6,76 @@ import { useHead } from '../hooks/useHead';
 import styles from './Cart.module.css';
 
 export default function Cart() {
-  const { items, removeItem, updateQuantity, totalPrice } = useCart();
+  const { items, removeItem, updateQuantity, totalPrice, clearCart } = useCart();
   useHead({ title: 'Cart', description: 'Your shopping cart at Gen X Gallery.' });
+
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [address, setAddress] = useState('');
+  const [orderPlaced, setOrderPlaced] = useState(false);
+  const [orderId, setOrderId] = useState(null);
+  const [sending, setSending] = useState(false);
+
+  const handleCheckout = async () => {
+    if (!email.trim() || sending) return;
+
+    setSending(true);
+    const id = `GXG-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+    setOrderId(id);
+
+    // Fire order confirmation email — don't block checkout on failure
+    try {
+      const res = await fetch('/api/send-order-confirmation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim(),
+          name: name.trim(),
+          items,
+          totalPrice,
+          orderId: id,
+          shippingAddress: address.trim() || null,
+        }),
+      });
+      const data = await res.json();
+      if (!data.sent) {
+        console.warn('Order confirmation email was not sent:', data.reason);
+      }
+    } catch (err) {
+      console.warn('Failed to send order confirmation email:', err);
+    }
+
+    // Complete the checkout regardless of email status
+    clearCart();
+    setOrderPlaced(true);
+    setSending(false);
+  };
+
+  if (orderPlaced) {
+    return (
+      <main className={styles.page}>
+        <div className="container">
+          <div className={styles.emptyCart}>
+            <svg className={styles.emptyIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+              <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            <h2 className={styles.emptyTitle}>Order Placed</h2>
+            <p className={styles.emptyText}>
+              Thank you for your order. A confirmation has been sent to {email}.
+              <br />
+              <span style={{ fontSize: '0.85rem', color: 'var(--color-ink-muted)' }}>
+                Order ID: <strong style={{ color: 'var(--color-ink)' }}>{orderId}</strong>
+              </span>
+            </p>
+            <Link to="/catalogue" className={`${styles.checkoutBtn}`} style={{ display: 'inline-block', width: 'auto', padding: '14px 32px' }}>
+              Continue Shopping
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -101,8 +170,89 @@ export default function Cart() {
               <span>Total</span>
               <span>{formatPrice(totalPrice)}</span>
             </div>
-            <button className={styles.checkoutBtn}>
-              Proceed to Checkout
+
+            <div style={{ margin: '20px 0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-ink-muted)', marginBottom: '6px' }}>
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Your name"
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '12px 14px',
+                    fontSize: '0.9rem',
+                    border: '1.5px solid var(--color-border)',
+                    borderRadius: '2px',
+                    background: 'white',
+                    color: 'var(--color-ink)',
+                    fontFamily: 'inherit',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-ink-muted)', marginBottom: '6px' }}>
+                  Email <span style={{ color: 'var(--color-accent)' }}>*</span>
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  required
+                  style={{
+                    width: '100%',
+                    padding: '12px 14px',
+                    fontSize: '0.9rem',
+                    border: '1.5px solid var(--color-border)',
+                    borderRadius: '2px',
+                    background: 'white',
+                    color: 'var(--color-ink)',
+                    fontFamily: 'inherit',
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-ink-muted)', marginBottom: '6px' }}>
+                  Delivery Address
+                </label>
+                <textarea
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Street, city, state, pincode"
+                  rows={2}
+                  style={{
+                    width: '100%',
+                    padding: '12px 14px',
+                    fontSize: '0.9rem',
+                    border: '1.5px solid var(--color-border)',
+                    borderRadius: '2px',
+                    background: 'white',
+                    color: 'var(--color-ink)',
+                    fontFamily: 'inherit',
+                    outline: 'none',
+                    resize: 'vertical',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </div>
+            </div>
+
+            <button
+              className={styles.checkoutBtn}
+              onClick={handleCheckout}
+              disabled={!email.trim() || sending}
+              style={{ opacity: !email.trim() || sending ? 0.6 : 1, cursor: !email.trim() || sending ? 'not-allowed' : 'pointer' }}
+            >
+              {sending ? 'Placing Order…' : 'Place Order'}
             </button>
             <p style={{ fontSize: '0.8rem', color: 'var(--color-ink-muted)', textAlign: 'center', marginTop: '12px' }}>
               Free shipping on orders above ₹999 · <Link to="/returns" style={{ color: 'var(--color-accent-text)' }}>Free returns within 7 days</Link>
