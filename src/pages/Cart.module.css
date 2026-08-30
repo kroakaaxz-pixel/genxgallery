@@ -176,6 +176,13 @@
   margin-bottom: var(--space-xl);
 }
 
+.taxNote {
+  font-size: 0.78rem;
+  color: #6B6B6B;
+  letter-spacing: 0.02em;
+  margin: calc(-1 * var(--space-sm)) 0 var(--space-xl) 0;
+}
+
 .checkoutBtn {
   width: 100%;
   padding: 16px;

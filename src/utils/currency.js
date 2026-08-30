@@ -7,6 +7,7 @@
 
 const CURRENCY_SYMBOL = '₹';
 const LOCALE = 'en-IN';
+const GST_RATE = 0.18;
 
 /**
  * Format a number as INR currency with Indian-style grouping.
@@ -24,4 +25,14 @@ export function formatNumber(amount) {
   return Number(amount).toLocaleString(LOCALE);
 }
 
-export { CURRENCY_SYMBOL };
+/**
+ * Derive the GST-inclusive breakdown from a total that already includes GST.
+ * Returns { basePrice, gstAmount } where basePrice + gstAmount === total.
+ */
+export function gstBreakdown(total) {
+  const basePrice = total / (1 + GST_RATE);
+  const gstAmount = total - basePrice;
+  return { basePrice, gstAmount };
+}
+
+export { CURRENCY_SYMBOL, GST_RATE };

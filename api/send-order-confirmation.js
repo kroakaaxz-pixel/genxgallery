@@ -17,6 +17,20 @@ function formatAddress(addr) {
   return lines.join('<br/>');
 }
 
+const GST_RATE = 0.18;
+function gstBreakdown(total) {
+  const basePrice = total / (1 + GST_RATE);
+  const gstAmount = total - basePrice;
+  return { basePrice, gstAmount };
+}
+
+const FREE_SHIPPING_THRESHOLD = 999;
+const FLAT_SHIPPING_FEE = 99;
+function calculateShipping(cartTotal) {
+  if (cartTotal >= FREE_SHIPPING_THRESHOLD) return { amount: 0, label: 'Free' };
+  return { amount: FLAT_SHIPPING_FEE, label: `₹${FLAT_SHIPPING_FEE}` };
+}
+
 function buildOrderEmail({ orderId, customerName, items, totalPrice, shippingAddress }) {
   const date = new Date().toLocaleDateString('en-IN', {
     year: 'numeric',
@@ -165,12 +179,24 @@ function buildOrderEmail({ orderId, customerName, items, totalPrice, shippingAdd
                 <tr>
                   <td style="padding:16px 0 0 0;border-top:2px solid #1A1A1A;">
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                      ${(() => {
+                        const { gstAmount } = gstBreakdown(totalPrice);
+                        const shipping = calculateShipping(totalPrice);
+                        return `
                       <tr>
                         <td style="font-size:14px;color:#6B6B6B;">
-                          Shipping
+                          Includes GST (18%)
                         </td>
                         <td style="font-size:14px;color:#6B6B6B;text-align:right;">
-                          Free
+                          ₹${Math.round(gstAmount).toLocaleString('en-IN')}
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:4px 0 0 0;font-size:14px;color:#6B6B6B;">
+                          Shipping
+                        </td>
+                        <td style="padding:4px 0 0 0;font-size:14px;color:#6B6B6B;text-align:right;">
+                          ${shipping.label}
                         </td>
                       </tr>
                       <tr>
@@ -181,6 +207,12 @@ function buildOrderEmail({ orderId, customerName, items, totalPrice, shippingAdd
                           ₹${totalPrice.toLocaleString('en-IN')}
                         </td>
                       </tr>
+                      <tr>
+                        <td colspan="2" style="padding:6px 0 0 0;font-size:12px;color:#6B6B6B;letter-spacing:0.02em;">
+                          Inclusive of all taxes
+                        </td>
+                      </tr>`;
+                      })()}
                     </table>
                   </td>
                 </tr>

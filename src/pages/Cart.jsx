@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { formatPrice } from '../utils/currency';
+import { formatPrice, gstBreakdown } from '../utils/currency';
+import { calculateShipping } from '../utils/shipping';
 import { useHead } from '../hooks/useHead';
 import styles from './Cart.module.css';
 
@@ -61,6 +62,9 @@ function FormField({ label, required, error, children }) {
 export default function Cart() {
   const { items, removeItem, updateQuantity, totalPrice, clearCart } = useCart();
   useHead({ title: 'Cart', description: 'Your shopping cart at Gen X Gallery.' });
+
+  const { gstAmount } = gstBreakdown(totalPrice);
+  const shipping = calculateShipping(totalPrice);
 
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
@@ -248,13 +252,18 @@ export default function Cart() {
               <span>{formatPrice(totalPrice)}</span>
             </div>
             <div className={styles.summaryRow}>
+              <span>Includes GST (18%)</span>
+              <span>{formatPrice(gstAmount)}</span>
+            </div>
+            <div className={styles.summaryRow}>
               <span>Shipping</span>
-              <span>Free</span>
+              <span>{shipping.label}</span>
             </div>
             <div className={styles.summaryTotal}>
               <span>Total</span>
               <span>{formatPrice(totalPrice)}</span>
             </div>
+            <p className={styles.taxNote}>Inclusive of all taxes</p>
 
             <div style={{ margin: '20px 0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {/* Contact */}
