@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Navigate, Link } from 'react-router-dom';
 import { getProductById, frameSizes, frameMaterials, posterSizes, getSizePrice, getPosterSizePrice, getDiscountedSizePrice, getDiscountedPrice, getReviewsForProduct } from '../data/products';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 import { formatPrice } from '../utils/currency';
 import { useHead } from '../hooks/useHead';
 import ProductCarousel from '../components/ProductCarousel';
@@ -57,6 +58,7 @@ export default function ProductDetail() {
   const { id } = useParams();
   const product = getProductById(id);
   const { addItem } = useCart();
+  const { toggle, has } = useWishlist();
 
   const isFramed = product?.category === 'framed-posters';
   const sizes = isFramed ? frameSizes : posterSizes;
@@ -220,6 +222,16 @@ export default function ProductDetail() {
                 </Link>
               )}
             </div>
+
+            <button
+              onClick={() => toggle(product.id)}
+              className={`${styles.wishlistBtn} ${has(product.id) ? styles.wishlistBtnActive : ''}`}
+            >
+              <svg viewBox="0 0 24 24" fill={has(product.id) ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+              {has(product.id) ? 'Saved for later' : 'Save for later'}
+            </button>
 
             <div className={styles.details}>
               <div className={styles.detailItem}>

@@ -183,6 +183,48 @@
   animation: cartBounce 0.4s ease;
 }
 
+/* Wishlist button — same treatment as cart */
+.wishlistButton {
+  position: relative;
+  padding: var(--space-sm);
+  color: var(--color-ink);
+  transition: color 0.2s ease;
+}
+
+.wishlistButton:hover {
+  color: var(--color-accent);
+}
+
+.wishlistButton:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+.wishlistIcon {
+  width: 22px;
+  height: 22px;
+}
+
+.wishlistBadge {
+  position: absolute;
+  top: -2px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-accent);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 600;
+  border-radius: 50%;
+  padding: 0 4px;
+  line-height: 1;
+  animation: cartBounce 0.4s ease;
+}
+
 @keyframes cartBounce {
   0% { transform: scale(0.5); opacity: 0; }
   50% { transform: scale(1.3); }
@@ -353,7 +395,8 @@
     transition: none;
   }
 
-  .cartBadge {
+  .cartBadge,
+  .wishlistBadge {
     animation: none;
     opacity: 1;
     transform: none;

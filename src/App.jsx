@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect, Suspense, lazy, useState } from 'react';
 import { CartProvider } from './context/CartContext';
+import { WishlistProvider } from './context/WishlistContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -9,6 +10,7 @@ import Category from './pages/Category';
 import ProductDetail from './pages/ProductDetail';
 import Customize from './pages/Customize';
 import Cart from './pages/Cart';
+import Wishlist from './pages/Wishlist';
 import About from './pages/About';
 import NotFound from './pages/NotFound';
 import Shipping from './pages/Shipping';
@@ -89,7 +91,8 @@ function App() {
   return (
     <BrowserRouter>
       <CartProvider>
-        <SiteStatusGate mode={siteMode}>
+        <WishlistProvider>
+          <SiteStatusGate mode={siteMode}>
           <ScrollToTop />
           <Analytics />
           <Header />
@@ -105,6 +108,7 @@ function App() {
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/customize" element={<Customize />} />
               <Route path="/cart" element={<Cart />} />
+              <Route path="/wishlist" element={<Wishlist />} />
               <Route path="/about" element={<About />} />
               <Route path="/shipping" element={<Shipping />} />
               <Route path="/returns" element={<Returns />} />
@@ -117,6 +121,7 @@ function App() {
           </PageTransition>
           <Footer />
         </SiteStatusGate>
+        </WishlistProvider>
       </CartProvider>
     </BrowserRouter>
   );

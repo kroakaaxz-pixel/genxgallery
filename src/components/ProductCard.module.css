@@ -116,6 +116,51 @@
   line-height: 1;
 }
 
+/* Wishlist heart button — top-right, mirrors badge position */
+.wishlistBtn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(4px);
+  color: var(--color-ink-light);
+  cursor: pointer;
+  transition: transform 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.wishlistBtn:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: scale(1.1);
+}
+
+.wishlistBtnActive {
+  color: var(--color-accent);
+}
+
+.wishlistBtnActive:hover {
+  color: var(--color-accent);
+}
+
+.wishlistBtn svg {
+  width: 18px;
+  height: 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wishlistBtn {
+    transition: none;
+  }
+}
+
 /* Text block */
 .info {
   padding: var(--space-lg) var(--space-lg) var(--space-xl);

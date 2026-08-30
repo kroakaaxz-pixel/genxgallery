@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useWishlist } from '../context/WishlistContext';
 import { getActiveProducts, categories, subCategories } from '../data/products';
 import styles from './Header.module.css';
 
@@ -8,6 +9,7 @@ const allProducts = getActiveProducts();
 
 export default function Header() {
   const { totalItems } = useCart();
+  const { count: wishlistCount } = useWishlist();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState(null);
@@ -251,6 +253,15 @@ export default function Header() {
                   </div>
                 )}
               </div>
+
+              <NavLink to="/wishlist" className={styles.wishlistButton} aria-label="Wishlist">
+                <svg className={styles.wishlistIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                </svg>
+                {wishlistCount > 0 && (
+                  <span className={styles.wishlistBadge}>{wishlistCount}</span>
+                )}
+              </NavLink>
 
               <NavLink to="/cart" className={styles.cartButton} aria-label="Cart">
                 <svg className={styles.cartIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

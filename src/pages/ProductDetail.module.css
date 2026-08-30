@@ -242,6 +242,55 @@
   outline-offset: 2px;
 }
 
+/* Save for later */
+.wishlistBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: var(--space-lg);
+  padding: 12px 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--color-ink-light);
+  background: none;
+  border: 1.5px solid var(--color-border);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.wishlistBtn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+.wishlistBtn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.wishlistBtnActive {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.wishlistBtnActive:hover {
+  background: rgba(194, 59, 34, 0.06);
+}
+
+.wishlistBtn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wishlistBtn {
+    transition: none;
+  }
+}
+
 /* Details */
 .details {
   margin-top: var(--space-3xl);
