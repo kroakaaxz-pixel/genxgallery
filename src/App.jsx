@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, Suspense, lazy } from 'react';
 import { CartProvider } from './context/CartContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -10,9 +10,10 @@ import ProductDetail from './pages/ProductDetail';
 import Customize from './pages/Customize';
 import Cart from './pages/Cart';
 import About from './pages/About';
-import Admin from './pages/Admin';
 import NotFound from './pages/NotFound';
 import './styles/global.css';
+
+const Admin = lazy(() => import('./pages/Admin'));
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -36,7 +37,7 @@ function App() {
           <Route path="/customize" element={<Customize />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/about" element={<About />} />
-          <Route path="/admin" element={<Admin />} />
+          <Route path="/admin" element={<Suspense fallback={<div style={{ padding: '4rem', textAlign: 'center' }}>Loading admin…</div>}><Admin /></Suspense>} />
           <Route path="/404" element={<NotFound />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

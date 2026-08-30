@@ -73,10 +73,12 @@
   position: absolute;
   bottom: -4px;
   left: 0;
-  width: 0;
+  width: 100%;
   height: 1.5px;
   background: var(--color-accent);
-  transition: width 0.3s ease;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
 }
 
 .navLink:hover,
@@ -86,7 +88,7 @@
 
 .navLink:hover::after,
 .navLinkActive::after {
-  width: 100%;
+  transform: scaleX(1);
 }
 
 .actions {

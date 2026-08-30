@@ -179,6 +179,7 @@ export default function Home() {
               <img
                 src="https://images.unsplash.com/photo-1513519245088-0e12902e35ca?w=800&h=1000&fit=crop"
                 alt="Framed prints on a gallery wall"
+                loading="lazy"
               />
               <span className={styles.storyImageCaption}>
                 Our studio, Brooklyn NY

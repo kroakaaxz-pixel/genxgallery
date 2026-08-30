@@ -1,12 +1,16 @@
+import { memo, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { frameSizes, getDiscountedPrice } from '../data/products';
 import { formatPrice } from '../utils/currency';
 import styles from './ProductCard.module.css';
 
-export default function ProductCard({ product, className = '' }) {
-  const availableSizes = frameSizes.filter((s) => product.sizes?.includes(s.id));
+const ProductCard = memo(function ProductCard({ product, className = '' }) {
+  const availableSizes = useMemo(
+    () => frameSizes.filter((s) => product.sizes?.includes(s.id)),
+    [product.sizes]
+  );
   const hasDiscount = product.discountPercent > 0;
-  const discountedPrice = getDiscountedPrice(product);
+  const discountedPrice = useMemo(() => getDiscountedPrice(product), [product]);
 
   return (
     <Link
@@ -54,4 +58,6 @@ export default function ProductCard({ product, className = '' }) {
       </div>
     </Link>
   );
-}
+});
+
+export default ProductCard;

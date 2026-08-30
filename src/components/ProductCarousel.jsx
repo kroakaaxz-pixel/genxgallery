@@ -2,17 +2,20 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import ProductCard from './ProductCard';
 import styles from './ProductCarousel.module.css';
 
-const SCROLL_SPEED = 18; // px per frame (~540px/s at 60fps = one card every ~3s)
-const RESUME_DELAY = 4500; // ms after last interaction before auto-scroll resumes
+const SCROLL_SPEED = 18;
+const RESUME_DELAY = 4500;
 
 export default function ProductCarousel({ products }) {
   const scrollRef = useRef(null);
   const animFrameRef = useRef(null);
   const lastTimeRef = useRef(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
+
+  // Drag state — refs for the animation loop (no re-render), state for cursor style
+  const isDraggingRef = useRef(false);
+  const [dragging, setDragging] = useState(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
 
   // Auto-scroll state
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
@@ -30,13 +33,11 @@ export default function ProductCarousel({ products }) {
     return () => mq.removeEventListener('change', handler);
   }, []);
 
-  // Pause auto-scroll on interaction
   const pauseAutoScroll = useCallback(() => {
     pausedRef.current = true;
     if (interactionTimerRef.current) clearTimeout(interactionTimerRef.current);
   }, []);
 
-  // Resume auto-scroll after idle
   const scheduleResume = useCallback(() => {
     if (interactionTimerRef.current) clearTimeout(interactionTimerRef.current);
     interactionTimerRef.current = setTimeout(() => {
@@ -44,7 +45,6 @@ export default function ProductCarousel({ products }) {
     }, RESUME_DELAY);
   }, []);
 
-  // Calculate how many items are visible to determine page count
   const getPageCount = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return total;
@@ -53,7 +53,6 @@ export default function ProductCarousel({ products }) {
     return Math.max(1, Math.ceil(total / visibleCards));
   }, [total]);
 
-  // Update current page based on scroll position
   const updatePage = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -74,7 +73,6 @@ export default function ProductCarousel({ products }) {
     return () => el.removeEventListener('scroll', updatePage);
   }, [updatePage]);
 
-  // Resize observer to recalculate on window resize
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
@@ -83,15 +81,14 @@ export default function ProductCarousel({ products }) {
     return () => observer.disconnect();
   }, [updatePage]);
 
-  // Auto-scroll animation loop
+  // Auto-scroll animation loop — uses isDraggingRef (not state) to avoid restart
   useEffect(() => {
     if (prefersReducedMotion) return;
     const el = scrollRef.current;
     if (!el) return;
 
     const tick = (now) => {
-      if (!pausedRef.current && !isDragging) {
-        // Disable snap during auto-scroll so continuous pixel-scroll is smooth
+      if (!pausedRef.current && !isDraggingRef.current) {
         el.style.scrollSnapType = 'none';
         if (lastTimeRef.current !== null) {
           const dt = now - lastTimeRef.current;
@@ -99,7 +96,6 @@ export default function ProductCarousel({ products }) {
         }
         lastTimeRef.current = now;
       } else {
-        // Re-enable snap when paused so manual scrolling aligns to cards
         el.style.scrollSnapType = '';
         lastTimeRef.current = null;
       }
@@ -109,12 +105,11 @@ export default function ProductCarousel({ products }) {
     animFrameRef.current = requestAnimationFrame(tick);
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
-      if (el) el.style.scrollSnapType = '';
+      el.style.scrollSnapType = '';
     };
-  }, [prefersReducedMotion, isDragging]);
+  }, [prefersReducedMotion]);
 
-  // Manual scroll
-  const scrollTo = (direction) => {
+  const scrollTo = useCallback((direction) => {
     const el = scrollRef.current;
     if (!el) return;
     const cardWidth = el.querySelector('a')?.offsetWidth || 260;
@@ -123,37 +118,40 @@ export default function ProductCarousel({ products }) {
     el.scrollBy({ left: scrollAmount, behavior: 'smooth' });
     pauseAutoScroll();
     scheduleResume();
-  };
+  }, [pauseAutoScroll, scheduleResume]);
 
-  // Mouse drag
-  const handleMouseDown = (e) => {
+  // Mouse drag — store values in refs so the document listeners are stable
+  const handleMouseDown = useCallback((e) => {
     const el = scrollRef.current;
     if (!el) return;
     pauseAutoScroll();
-    setIsDragging(true);
-    setStartX(e.pageX - el.offsetLeft);
-    setScrollLeft(el.scrollLeft);
+    isDraggingRef.current = true;
+    setDragging(true);
+    startXRef.current = e.pageX - el.offsetLeft;
+    scrollLeftRef.current = el.scrollLeft;
     el.style.cursor = 'grabbing';
-  };
+  }, [pauseAutoScroll]);
 
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
+  const handleMouseMove = useCallback((e) => {
+    if (!isDraggingRef.current) return;
     e.preventDefault();
     const el = scrollRef.current;
     if (!el) return;
     const x = e.pageX - el.offsetLeft;
-    const walk = (x - startX) * 1.5;
-    el.scrollLeft = scrollLeft - walk;
-  };
+    const walk = (x - startXRef.current) * 1.5;
+    el.scrollLeft = scrollLeftRef.current - walk;
+  }, []);
 
-  const handleMouseUp = () => {
-    if (!isDragging) return;
-    setIsDragging(false);
+  const handleMouseUp = useCallback(() => {
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+    setDragging(false);
     const el = scrollRef.current;
     if (el) el.style.cursor = '';
     scheduleResume();
-  };
+  }, [scheduleResume]);
 
+  // Document-level mouse listeners — stable deps via useCallback handlers
   useEffect(() => {
     document.addEventListener('mouseup', handleMouseUp);
     document.addEventListener('mousemove', handleMouseMove);
@@ -161,31 +159,17 @@ export default function ProductCarousel({ products }) {
       document.removeEventListener('mouseup', handleMouseUp);
       document.removeEventListener('mousemove', handleMouseMove);
     };
-  });
+  }, [handleMouseUp, handleMouseMove]);
 
-  // Touch events
-  const handleTouchStart = () => {
-    pauseAutoScroll();
-  };
+  const handleTouchStart = useCallback(() => { pauseAutoScroll(); }, [pauseAutoScroll]);
+  const handleTouchEnd = useCallback(() => { scheduleResume(); }, [scheduleResume]);
+  const handleMouseEnter = useCallback(() => { pauseAutoScroll(); }, [pauseAutoScroll]);
+  const handleMouseLeave = useCallback(() => { scheduleResume(); }, [scheduleResume]);
 
-  const handleTouchEnd = () => {
-    scheduleResume();
-  };
-
-  // Mouse hover
-  const handleMouseEnter = () => {
-    pauseAutoScroll();
-  };
-
-  const handleMouseLeave = () => {
-    scheduleResume();
-  };
-
-  // Arrow click
-  const handleArrowClick = (direction) => {
+  const handleArrowClick = useCallback((direction) => {
     pauseAutoScroll();
     scrollTo(direction);
-  };
+  }, [pauseAutoScroll, scrollTo]);
 
   const pageCount = getPageCount();
 
@@ -205,10 +189,11 @@ export default function ProductCarousel({ products }) {
 
       <div
         ref={scrollRef}
-        className={`${styles.track} ${prefersReducedMotion ? '' : styles.trackAutoScroll}`}
+        className={styles.track}
         onMouseDown={handleMouseDown}
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
+        style={{ cursor: dragging ? 'grabbing' : '' }}
       >
         {products.map((product) => (
           <div key={product.id} className={styles.slide}>
