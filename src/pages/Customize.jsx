@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import { products, frameSizes, frameMaterials, textures, getSizePrice } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { uploadImage } from '../hooks/uploadImage';
@@ -89,11 +89,11 @@ export default function Customize() {
     );
   };
 
-  const getFrameDimensions = () => {
+  // Memoize frame dimensions — only recalculates when selectedSize changes
+  const frameDims = useMemo(() => {
     const size = frameSizes.find((s) => s.id === selectedSize);
     if (!size) return { width: 200, height: 280, scale: 0.7 };
 
-    // Always compute at A4 (max) size — we'll scale via CSS transform
     const a4Size = frameSizes.find((s) => s.id === 'a4');
     const maxPreviewWidth = 280;
     const maxPreviewHeight = 380;
@@ -106,22 +106,18 @@ export default function Customize() {
       a4Width = maxPreviewHeight * a4Ratio;
     }
 
-    // Scale factor relative to A4
     const scaleFactor = Math.sqrt((size.width * size.height) / (a4Size.width * a4Size.height));
-
     return { width: Math.round(a4Width), height: Math.round(a4Height), scale: scaleFactor };
-  };
+  }, [selectedSize]);
 
-  const frameDims = getFrameDimensions();
   const material = frameMaterials.find((m) => m.id === selectedMaterial);
 
-  // Material-specific frame styles — always render at A4 size, scale via transform
-  const getMaterialStyle = () => {
+  // Memoize material styles — only recalculates when selectedMaterial changes
+  // Width/height are constant (always A4); only transform scale changes per size
+  const materialStyles = useMemo(() => {
     const base = {
       width: frameDims.width + 32,
       height: frameDims.height + 32,
-      transform: `scale(${frameDims.scale})`,
-      transformOrigin: 'center center',
     };
     switch (selectedMaterial) {
       case 'black':
@@ -145,7 +141,14 @@ export default function Customize() {
       default:
         return { ...base, background: material?.hex || '#1A1A1A' };
     }
-  };
+  }, [selectedMaterial, frameDims.width, frameDims.height, material]);
+
+  // Only the transform changes on size selection — this is the animated property
+  const frameStyle = useMemo(() => ({
+    ...materialStyles,
+    transform: `scale(${frameDims.scale})`,
+    transformOrigin: 'center center',
+  }), [materialStyles, frameDims.scale]);
 
   const frameRatio = frameDims.width / frameDims.height;
   const ratioDiff = Math.abs(sourceRatio - frameRatio);
@@ -167,7 +170,7 @@ export default function Customize() {
             <div className={styles.previewFrame}>
               <div
                 className={styles.frame}
-                style={getMaterialStyle()}
+                style={frameStyle}
               >
                 <div
                   className={`${styles.frameInner} ${selectedTexture === 'glossy' ? styles.glossy : styles.matte}`}
