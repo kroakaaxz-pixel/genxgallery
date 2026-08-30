@@ -1,18 +1,28 @@
-import { useState, useEffect, useRef } from 'react';
-import { Link, NavLink, useLocation } from 'react-router-dom';
+import { useState, useEffect, useRef, useMemo } from 'react';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { getActiveProducts } from '../data/products';
 import styles from './Header.module.css';
+
+const allProducts = getActiveProducts();
 
 export default function Header() {
   const { totalItems } = useCart();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState('');
   const location = useLocation();
+  const navigate = useNavigate();
   const mobileNavRef = useRef(null);
+  const searchInputRef = useRef(null);
+  const searchDropdownRef = useRef(null);
 
   // Close on route change
   useEffect(() => {
     setMobileOpen(false);
+    setSearchOpen(false);
+    setQuery('');
   }, [location]);
 
   // Close on tap outside
@@ -55,6 +65,59 @@ export default function Header() {
     }
     return () => { document.body.style.overflow = ''; };
   }, [mobileOpen]);
+
+  // Focus search input when opened
+  useEffect(() => {
+    if (searchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [searchOpen]);
+
+  // Close search on tap outside
+  useEffect(() => {
+    if (!searchOpen) return;
+    const handleOutside = (e) => {
+      if (
+        searchDropdownRef.current &&
+        !searchDropdownRef.current.contains(e.target) &&
+        !e.target.closest(`.${styles.searchButton}`)
+      ) {
+        setSearchOpen(false);
+        setQuery('');
+      }
+    };
+    const timer = setTimeout(() => {
+      document.addEventListener('click', handleOutside);
+    }, 10);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('click', handleOutside);
+    };
+  }, [searchOpen]);
+
+  // Search results
+  const results = useMemo(() => {
+    if (!query.trim()) return [];
+    const q = query.toLowerCase();
+    return allProducts.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q)
+    ).slice(0, 6);
+  }, [query]);
+
+  const handleResultClick = (id) => {
+    navigate(`/product/${id}`);
+    setSearchOpen(false);
+    setQuery('');
+  };
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (results.length > 0) {
+      handleResultClick(results[0].id);
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 10);
@@ -127,6 +190,75 @@ export default function Header() {
             </ul>
 
             <div className={styles.actions}>
+              <div className={styles.searchWrap}>
+                <button
+                  className={styles.searchButton}
+                  onClick={() => { setSearchOpen(!searchOpen); setQuery(''); }}
+                  aria-label="Search products"
+                  aria-expanded={searchOpen}
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8" />
+                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                  </svg>
+                </button>
+
+                {searchOpen && (
+                  <div className={styles.searchDropdown} ref={searchDropdownRef}>
+                    <form onSubmit={handleSearchSubmit} className={styles.searchForm}>
+                      <svg className={styles.searchInputIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                      </svg>
+                      <input
+                        ref={searchInputRef}
+                        type="text"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder="Search prints..."
+                        className={styles.searchInput}
+                      />
+                      {query && (
+                        <button
+                          type="button"
+                          className={styles.searchClear}
+                          onClick={() => setQuery('')}
+                          aria-label="Clear search"
+                        >
+                          ×
+                        </button>
+                      )}
+                    </form>
+
+                    {query.trim() && (
+                      <div className={styles.searchResults}>
+                        {results.length > 0 ? (
+                          results.map((product) => (
+                            <button
+                              key={product.id}
+                              className={styles.searchResult}
+                              onClick={() => handleResultClick(product.id)}
+                            >
+                              <img
+                                src={product.image}
+                                alt={product.name}
+                                className={styles.searchResultImg}
+                              />
+                              <div className={styles.searchResultInfo}>
+                                <span className={styles.searchResultCategory}>{product.category}</span>
+                                <span className={styles.searchResultName}>{product.name}</span>
+                              </div>
+                            </button>
+                          ))
+                        ) : (
+                          <p className={styles.searchEmpty}>No prints found for &ldquo;{query}&rdquo;</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
               <NavLink to="/cart" className={styles.cartButton} aria-label="Cart">
                 <svg className={styles.cartIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
