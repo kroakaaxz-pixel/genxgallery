@@ -1,0 +1,398 @@
+.page {
+  padding-top: calc(var(--header-height) + var(--space-3xl));
+  padding-bottom: var(--space-4xl);
+}
+
+.pageHeader {
+  margin-bottom: var(--space-3xl);
+}
+
+.pageLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-accent-text);
+  margin-bottom: var(--space-sm);
+}
+
+.pageTitle {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.loadingText {
+  font-size: 0.95rem;
+  color: var(--color-ink-muted);
+  padding: var(--space-3xl) 0;
+}
+
+/* Empty state */
+.emptyState {
+  text-align: center;
+  padding: var(--space-4xl) var(--space-xl);
+}
+
+.emptyIcon {
+  width: 48px;
+  height: 48px;
+  color: var(--color-ink-muted);
+  margin-bottom: var(--space-xl);
+}
+
+.emptyTitle {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-ink);
+  margin-bottom: var(--space-md);
+}
+
+.emptyText {
+  font-size: 0.95rem;
+  color: var(--color-ink-muted);
+  max-width: 380px;
+  margin: 0 auto var(--space-2xl);
+  line-height: 1.6;
+}
+
+.browseBtn {
+  display: inline-block;
+  padding: 14px 32px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--color-accent);
+  color: white;
+  text-decoration: none;
+  border-radius: 2px;
+  transition: background 0.25s ease;
+}
+
+.browseBtn:hover {
+  background: var(--color-accent-hover);
+}
+
+/* ── Orders ──────────────────────────────────────────────── */
+
+.ordersList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.orderCard {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.orderHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-lg) var(--space-xl);
+  border-bottom: 1px solid var(--color-border);
+  background: rgba(250, 248, 245, 0.5);
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.orderId {
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: monospace;
+  color: var(--color-ink);
+  margin-right: var(--space-md);
+}
+
+.orderDate {
+  font-size: 0.8rem;
+  color: var(--color-ink-muted);
+}
+
+.statusBadge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 2px;
+}
+
+.statusPlaced {
+  background: #E8F4FD;
+  color: #1565C0;
+}
+
+.statusConfirmed {
+  background: #FFF3E0;
+  color: #E65100;
+}
+
+.statusShipped {
+  background: #E8F5E9;
+  color: #2E7D32;
+}
+
+.statusDelivered {
+  background: #E8F5E9;
+  color: #1B5E20;
+}
+
+.statusCancelled {
+  background: #FFEBEE;
+  color: #C62828;
+}
+
+.orderItems {
+  padding: var(--space-md) var(--space-xl);
+}
+
+.orderItem {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: var(--space-md);
+  padding: var(--space-sm) 0;
+  font-size: 0.9rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.orderItem:last-child {
+  border-bottom: none;
+}
+
+.orderItemName {
+  font-weight: 500;
+  color: var(--color-ink);
+}
+
+.orderItemMeta {
+  font-size: 0.8rem;
+  color: var(--color-ink-muted);
+  text-align: center;
+}
+
+.orderItemPrice {
+  font-weight: 600;
+  text-align: right;
+}
+
+.orderFooter {
+  display: flex;
+  justify-content: flex-end;
+  padding: var(--space-md) var(--space-xl);
+  border-top: 1px solid var(--color-border);
+}
+
+.orderTotal {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+/* ── Addresses ───────────────────────────────────────────── */
+
+.addressesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-xl);
+  margin-bottom: var(--space-2xl);
+}
+
+.addressCard {
+  position: relative;
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  padding: var(--space-xl);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--color-ink);
+}
+
+.addressCard p {
+  margin: 0;
+}
+
+.addressDefault {
+  border-color: var(--color-accent);
+}
+
+.defaultBadge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  background: var(--color-accent);
+  color: white;
+  border-radius: 2px;
+}
+
+.addressActions {
+  display: flex;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--color-border);
+}
+
+.addressActionBtn {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-ink-muted);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.2s ease;
+  font-family: inherit;
+}
+
+.addressActionBtn:hover {
+  color: var(--color-ink);
+}
+
+.addressActionDanger:hover {
+  color: var(--color-accent);
+}
+
+.addAddressBtn {
+  display: block;
+  width: 100%;
+  padding: var(--space-lg);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--color-ink-light);
+  background: transparent;
+  border: 2px dashed var(--color-border);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.addAddressBtn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+/* Form */
+.addressForm {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  padding: var(--space-2xl);
+  margin-top: var(--space-xl);
+}
+
+.formTitle {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: var(--space-xl);
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-md);
+}
+
+.formGrid > :first-child {
+  grid-column: 1 / -1;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--color-ink-light);
+  margin-top: var(--space-lg);
+  cursor: pointer;
+}
+
+.checkboxLabel input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-accent);
+}
+
+.formActions {
+  display: flex;
+  gap: var(--space-md);
+  margin-top: var(--space-xl);
+}
+
+.saveBtn {
+  padding: 12px 24px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background 0.25s ease;
+  font-family: inherit;
+}
+
+.saveBtn:hover {
+  background: var(--color-accent-hover);
+}
+
+.saveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.cancelBtn {
+  padding: 12px 24px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--color-ink-muted);
+  background: transparent;
+  border: 1.5px solid var(--color-border);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.cancelBtn:hover {
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .addressesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .orderItem {
+    grid-template-columns: 1fr auto;
+    gap: var(--space-sm);
+  }
+
+  .orderItemMeta {
+    grid-column: 1 / -1;
+    text-align: left;
+  }
+}

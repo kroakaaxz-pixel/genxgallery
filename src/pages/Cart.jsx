@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
+import { getAddresses, addAddress, insertOrder } from '../lib/supabase';
 import { formatPrice, gstBreakdown } from '../utils/currency';
 import { calculateShipping } from '../utils/shipping';
 import { useHead } from '../hooks/useHead';
@@ -61,6 +63,7 @@ function FormField({ label, required, error, children }) {
 
 export default function Cart() {
   const { items, removeItem, updateQuantity, totalPrice, clearCart } = useCart();
+  const { user } = useAuth();
   useHead({ title: 'Cart', description: 'Your shopping cart at Gen X Gallery.' });
 
   const { gstAmount } = gstBreakdown(totalPrice);
@@ -75,10 +78,30 @@ export default function Cart() {
   const [city, setCity] = useState('');
   const [state, setState] = useState('');
   const [pincode, setPincode] = useState('');
+  const [saveAddress, setSaveAddress] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderId, setOrderId] = useState(null);
   const [sending, setSending] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // Pre-fill from default saved address when logged in
+  useEffect(() => {
+    if (!user) return;
+    if (user.user_metadata?.full_name && !name) setName(user.user_metadata.full_name);
+    if (user.email && !email) setEmail(user.email);
+    getAddresses(user.id).then((addrs) => {
+      const def = addrs.find((a) => a.is_default) || addrs[0];
+      if (def) {
+        setHouseNo(def.house_no || '');
+        setStreet(def.street || '');
+        setLandmark(def.landmark || '');
+        setCity(def.city || '');
+        setState(def.state || '');
+        setPincode(def.pincode || '');
+        setPhone(def.phone || '');
+      }
+    });
+  }, [user]);
 
   const validate = () => {
     const e = {};
@@ -114,6 +137,47 @@ export default function Cart() {
     setOrderId(id);
     const address = buildAddress();
 
+    // 1. Persist order to Supabase
+    try {
+      const orderItems = items.map((item) => ({
+        name: item.product?.name || item.name,
+        options: [item.options?.sizeLabel, item.options?.materialName, item.options?.textureName].filter(Boolean).join(' · '),
+        quantity: item.quantity,
+        price: (item.options?.sizePrice || item.product?.price || 0) * item.quantity,
+      }));
+      await insertOrder({
+        id,
+        user_id: user?.id || null,
+        email: email.trim(),
+        items: orderItems,
+        address,
+        subtotal: totalPrice,
+        total: totalPrice,
+        status: 'placed',
+      });
+    } catch (err) {
+      console.warn('Failed to persist order:', err);
+    }
+
+    // 2. Save address if checkbox is checked
+    if (user && saveAddress) {
+      try {
+        await addAddress(user.id, {
+          house_no: address.houseNo,
+          street: address.street,
+          landmark: address.landmark,
+          city: address.city,
+          state: address.state,
+          pincode: address.pincode,
+          phone: address.phone,
+          is_default: false,
+        });
+      } catch (err) {
+        console.warn('Failed to save address:', err);
+      }
+    }
+
+    // 3. Send confirmation email (non-blocking)
     try {
       const res = await fetch('/api/send-order-confirmation', {
         method: 'POST',
@@ -305,6 +369,17 @@ export default function Cart() {
                   ))}
                 </select>
               </FormField>
+              {user && (
+                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--color-ink-light)', cursor: 'pointer', marginTop: '4px' }}>
+                  <input
+                    type="checkbox"
+                    checked={saveAddress}
+                    onChange={(e) => setSaveAddress(e.target.checked)}
+                    style={{ width: '16px', height: '16px', accentColor: 'var(--color-accent)' }}
+                  />
+                  Save this address for future orders
+                </label>
+              )}
             </div>
 
             <button

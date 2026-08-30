@@ -2,7 +2,10 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useAuth } from '../context/AuthContext';
+import { signInWithGoogle, signOut } from '../lib/supabase';
 import { getActiveProducts, categories, subCategories } from '../data/products';
+import logoUrl from '../assets/logo.svg';
 import styles from './Header.module.css';
 
 const allProducts = getActiveProducts();
@@ -10,16 +13,19 @@ const allProducts = getActiveProducts();
 export default function Header() {
   const { totalItems } = useCart();
   const { count: wishlistCount } = useWishlist();
+  const { user } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const mobileNavRef = useRef(null);
   const searchInputRef = useRef(null);
   const searchDropdownRef = useRef(null);
+  const userMenuRef = useRef(null);
 
   // Close on route change
   useEffect(() => {
@@ -27,6 +33,7 @@ export default function Header() {
     setMobileExpanded(null);
     setSearchOpen(false);
     setQuery('');
+    setUserMenuOpen(false);
   }, [location]);
 
   // Close on tap outside
@@ -95,6 +102,23 @@ export default function Header() {
     };
   }, [searchOpen]);
 
+  // Close user menu on tap outside
+  useEffect(() => {
+    if (!userMenuOpen) return;
+    const handleOutside = (e) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setUserMenuOpen(false);
+      }
+    };
+    const timer = setTimeout(() => {
+      document.addEventListener('click', handleOutside);
+    }, 10);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('click', handleOutside);
+    };
+  }, [userMenuOpen]);
+
   // Search results
   const results = useMemo(() => {
     if (!query.trim()) return [];
@@ -133,7 +157,7 @@ export default function Header() {
       <header className={`${styles.header} ${scrolled ? styles.scrolled : ''}`}>
         <div className={styles.inner}>
           <Link to="/" className={styles.logo}>
-            Gen X <span>Gallery</span>
+            <img src={logoUrl} alt="Gen X Gallery" className={styles.logoImg} />
           </Link>
 
           <nav className={styles.nav}>
@@ -274,6 +298,63 @@ export default function Header() {
                 )}
               </NavLink>
 
+              {/* Auth button */}
+              {user ? (
+                <div className={styles.userMenuWrap} ref={userMenuRef}>
+                  <button
+                    className={styles.userButton}
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    aria-label="Account menu"
+                    aria-expanded={userMenuOpen}
+                  >
+                    {user.user_metadata?.avatar_url ? (
+                      <img
+                        src={user.user_metadata.avatar_url}
+                        alt=""
+                        className={styles.userAvatar}
+                      />
+                    ) : (
+                      <span className={styles.userInitial}>
+                        {(user.user_metadata?.full_name || user.email || '?')[0].toUpperCase()}
+                      </span>
+                    )}
+                  </button>
+                  {userMenuOpen && (
+                    <div className={styles.userDropdown}>
+                      <div className={styles.userDropdownHeader}>
+                        <span className={styles.userDropdownName}>
+                          {user.user_metadata?.full_name || user.email}
+                        </span>
+                      </div>
+                      <NavLink to="/account/orders" className={styles.userDropdownLink} onClick={() => setUserMenuOpen(false)}>
+                        My Orders
+                      </NavLink>
+                      <NavLink to="/account/addresses" className={styles.userDropdownLink} onClick={() => setUserMenuOpen(false)}>
+                        Saved Addresses
+                      </NavLink>
+                      <button
+                        className={styles.userDropdownLink}
+                        onClick={() => { signOut(); setUserMenuOpen(false); }}
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  className={styles.signInButton}
+                  onClick={() => signInWithGoogle()}
+                  aria-label="Sign in with Google"
+                >
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={styles.signInIcon}>
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  <span className={styles.signInText}>Sign In</span>
+                </button>
+              )}
+
               <button
                 className={styles.mobileMenuButton}
                 onClick={() => setMobileOpen(!mobileOpen)}
@@ -330,6 +411,27 @@ export default function Header() {
             ))}
             <NavLink to="/customize" className={styles.navLink} onClick={closeMobile}>Customize</NavLink>
             <NavLink to="/about" className={styles.navLink} onClick={closeMobile}>About</NavLink>
+            {user ? (
+              <>
+                <NavLink to="/account/orders" className={styles.navLink} onClick={closeMobile}>My Orders</NavLink>
+                <NavLink to="/account/addresses" className={styles.navLink} onClick={closeMobile}>Saved Addresses</NavLink>
+                <button
+                  className={styles.navLink}
+                  style={{ textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', font: 'inherit', width: '100%' }}
+                  onClick={() => { signOut(); closeMobile(); }}
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <button
+                className={styles.navLink}
+                style={{ textAlign: 'left', background: 'none', border: 'none', cursor: 'pointer', font: 'inherit', width: '100%' }}
+                onClick={() => { signInWithGoogle(); closeMobile(); }}
+              >
+                Sign In
+              </button>
+            )}
           </nav>
         </div>
       )}

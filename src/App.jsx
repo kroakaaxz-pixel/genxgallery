@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { useEffect, Suspense, lazy, useState } from 'react';
 import { CartProvider } from './context/CartContext';
 import { WishlistProvider } from './context/WishlistContext';
+import { AuthProvider } from './context/AuthContext';
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -11,6 +12,8 @@ import ProductDetail from './pages/ProductDetail';
 import Customize from './pages/Customize';
 import Cart from './pages/Cart';
 import Wishlist from './pages/Wishlist';
+import AccountOrders from './pages/AccountOrders';
+import AccountAddresses from './pages/AccountAddresses';
 import About from './pages/About';
 import NotFound from './pages/NotFound';
 import Shipping from './pages/Shipping';
@@ -92,7 +95,8 @@ function App() {
     <BrowserRouter>
       <CartProvider>
         <WishlistProvider>
-          <SiteStatusGate mode={siteMode}>
+          <AuthProvider>
+            <SiteStatusGate mode={siteMode}>
           <ScrollToTop />
           <Analytics />
           <Header />
@@ -109,6 +113,8 @@ function App() {
               <Route path="/customize" element={<Customize />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/wishlist" element={<Wishlist />} />
+              <Route path="/account/orders" element={<AccountOrders />} />
+              <Route path="/account/addresses" element={<AccountAddresses />} />
               <Route path="/about" element={<About />} />
               <Route path="/shipping" element={<Shipping />} />
               <Route path="/returns" element={<Returns />} />
@@ -120,7 +126,8 @@ function App() {
             </Routes>
           </PageTransition>
           <Footer />
-        </SiteStatusGate>
+          </SiteStatusGate>
+          </AuthProvider>
         </WishlistProvider>
       </CartProvider>
     </BrowserRouter>

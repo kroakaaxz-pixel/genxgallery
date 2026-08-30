@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { INSTAGRAM_URL, INSTAGRAM_HANDLE, WHATSAPP_URL } from '../config/admin';
+import logoUrl from '../assets/logo.svg';
 import styles from './Footer.module.css';
 
 export default function Footer() {
@@ -8,9 +9,7 @@ export default function Footer() {
       <div className="container">
         <div className={styles.footerGrid}>
           <div className={styles.brand}>
-            <div className={styles.brandLogo}>
-              Gen X <span>Gallery</span>
-            </div>
+            <img src={logoUrl} alt="Gen X Gallery" className={styles.brandLogoImg} />
             <p className={styles.brandTagline}>
               Premium framed prints for people who care about what's on their walls.
               Pop culture, automotive, anime, and typographic art — gallery-ready.
