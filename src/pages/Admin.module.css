@@ -716,6 +716,98 @@
   color: #C5A55A;
 }
 
+/* Site Status */
+.statusSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.sectionDesc {
+  font-size: 0.9rem;
+  color: var(--color-ink-muted);
+  margin-top: -0.5rem;
+}
+
+.statusCard {
+  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: 2px;
+  padding: var(--space-xl);
+  max-width: 520px;
+}
+
+.statusCurrent {
+  font-size: 0.9rem;
+  color: var(--color-ink-light);
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.statusCurrent strong {
+  color: var(--color-ink);
+}
+
+.statusOptions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.statusOption {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  border: 1.5px solid var(--color-border);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.statusOption:hover {
+  border-color: var(--color-ink-muted);
+}
+
+.statusOptionActive {
+  border-color: var(--color-ink);
+  background: var(--color-cream);
+}
+
+.statusRadio {
+  margin-top: 3px;
+  accent-color: var(--color-accent);
+}
+
+.statusLabel {
+  display: block;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-ink);
+}
+
+.statusDesc {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--color-ink-muted);
+  margin-top: 2px;
+}
+
+.statusSaving {
+  font-size: 0.8rem;
+  color: var(--color-accent-text);
+  margin-top: var(--space-md);
+  font-style: italic;
+}
+
 @media (max-width: 768px) {
   .header {
     flex-direction: column;

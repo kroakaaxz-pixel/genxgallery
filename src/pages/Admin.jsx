@@ -3,6 +3,7 @@ import { products as initialProducts, categories, subCategories, productStatuses
 import { initialOrders, orderStatuses, computeAnalytics } from '../data/orders';
 import { ADMIN_PASSWORD } from '../config/admin';
 import { formatPrice } from '../utils/currency';
+import { supabase, setSiteStatus } from '../lib/supabase';
 import styles from './Admin.module.css';
 
 import {
@@ -67,7 +68,7 @@ const emptyProduct = {
   isSpecialDeal: false,
 };
 
-export default function Admin() {
+export default function Admin({ onStatusChange }) {
   const [authenticated, setAuthenticated] = useState(getStoredAuth);
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
@@ -78,6 +79,37 @@ export default function Admin() {
   const [formData, setFormData] = useState({ ...emptyProduct });
   const [filterStatus, setFilterStatus] = useState('all');
   const [activeTab, setActiveTab] = useState('products');
+
+  // Site status state
+  const [siteMode, setSiteMode] = useState('live');
+  const [siteModeLoading, setSiteModeLoading] = useState(false);
+
+  // Load current site status on mount
+  useEffect(() => {
+    if (!authenticated || !supabase) return;
+    supabase
+      .from('site_status')
+      .select('mode')
+      .eq('id', 1)
+      .single()
+      .then(({ data }) => {
+        if (data?.mode) setSiteMode(data.mode);
+      })
+      .catch(() => {});
+  }, [authenticated]);
+
+  const handleSiteModeChange = async (newMode) => {
+    setSiteModeLoading(true);
+    try {
+      await setSiteStatus(newMode);
+      setSiteMode(newMode);
+      if (onStatusChange) onStatusChange(newMode);
+    } catch (err) {
+      console.error('Failed to update site status:', err);
+    } finally {
+      setSiteModeLoading(false);
+    }
+  };
 
   // Orders state
   const [orderFilter, setOrderFilter] = useState('all');
@@ -320,6 +352,14 @@ export default function Admin() {
           >
             Analytics
           </button>
+          {supabase && (
+            <button
+              onClick={() => setActiveTab('status')}
+              className={`${styles.tab} ${activeTab === 'status' ? styles.tabActive : ''}`}
+            >
+              Site Status
+            </button>
+          )}
         </div>
 
         {/* ═══════════ PRODUCTS TAB ═══════════ */}
@@ -809,6 +849,51 @@ export default function Admin() {
                   ))}
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* ═══════════ SITE STATUS TAB ═══════════ */}
+        {activeTab === 'status' && supabase && (
+          <div className={styles.statusSection}>
+            <h2 className={styles.sectionTitle}>Site Status</h2>
+            <p className={styles.sectionDesc}>
+              Controls what real visitors see. Changes take effect on their next page load.
+            </p>
+
+            <div className={styles.statusCard}>
+              <p className={styles.statusCurrent}>
+                Current mode: <strong>{siteMode === 'live' ? 'Live' : siteMode === 'coming_soon' ? 'Coming Soon' : 'Under Maintenance'}</strong>
+              </p>
+
+              <div className={styles.statusOptions}>
+                {[
+                  { value: 'live', label: 'Live', desc: 'Site is fully accessible to visitors' },
+                  { value: 'coming_soon', label: 'Coming Soon', desc: 'Shows a pre-launch page with email signup' },
+                  { value: 'maintenance', label: 'Under Maintenance', desc: 'Shows a temporary outage page' },
+                ].map((opt) => (
+                  <label
+                    key={opt.value}
+                    className={`${styles.statusOption} ${siteMode === opt.value ? styles.statusOptionActive : ''}`}
+                  >
+                    <input
+                      type="radio"
+                      name="siteMode"
+                      value={opt.value}
+                      checked={siteMode === opt.value}
+                      onChange={() => handleSiteModeChange(opt.value)}
+                      disabled={siteModeLoading}
+                      className={styles.statusRadio}
+                    />
+                    <div>
+                      <span className={styles.statusLabel}>{opt.label}</span>
+                      <span className={styles.statusDesc}>{opt.desc}</span>
+                    </div>
+                  </label>
+                ))}
+              </div>
+
+              {siteModeLoading && <p className={styles.statusSaving}>Updating…</p>}
             </div>
           </div>
         )}

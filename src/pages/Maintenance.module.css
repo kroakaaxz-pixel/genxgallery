@@ -1,0 +1,58 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-cream);
+  padding: var(--space-xl);
+}
+
+.content {
+  max-width: 480px;
+  text-align: center;
+}
+
+.label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+  margin-bottom: var(--space-xl);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 8vw, 5.5rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  color: var(--color-ink);
+  margin-bottom: var(--space-xl);
+}
+
+.title em {
+  font-style: italic;
+  color: var(--color-accent);
+}
+
+.description {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: var(--color-ink-light);
+  margin-bottom: var(--space-2xl);
+}
+
+.divider {
+  width: 48px;
+  height: 1px;
+  background: var(--color-border);
+  margin: 0 auto var(--space-2xl);
+}
+
+.footer {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1rem;
+  color: var(--color-ink-muted);
+}
