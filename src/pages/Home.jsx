@@ -1,13 +1,16 @@
 import { Link } from 'react-router-dom';
-import { getActiveProducts, categories, getDiscountedPrice } from '../data/products';
+import { getActiveProducts, getNewArrivals, getSpecialDeals, categories, getDiscountedPrice } from '../data/products';
 import { formatPrice } from '../utils/currency';
 import ProductCard from '../components/ProductCard';
+import ProductCarousel from '../components/ProductCarousel';
 import styles from './Home.module.css';
 
 const allProducts = getActiveProducts();
 const featuredProducts = allProducts.filter((p) =>
   [1, 5, 9, 11].includes(p.id)
 );
+const newArrivals = getNewArrivals();
+const specialDeals = getSpecialDeals();
 
 const categoryImages = {
   cars: 'https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&h=1000&fit=crop',
@@ -97,6 +100,42 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* New Arrivals */}
+      {newArrivals.length > 0 && (
+        <section className={styles.carouselSection}>
+          <div className="container">
+            <div className={styles.sectionHeader}>
+              <div>
+                <p className={styles.sectionLabel}>Just In</p>
+                <h2 className={styles.sectionTitle}>New Arrivals</h2>
+              </div>
+              <Link to="/catalogue" className={styles.sectionLink}>
+                View All →
+              </Link>
+            </div>
+            <ProductCarousel products={newArrivals} />
+          </div>
+        </section>
+      )}
+
+      {/* Special Deals */}
+      {specialDeals.length > 0 && (
+        <section className={`${styles.carouselSection} ${styles.carouselSectionAlt}`}>
+          <div className="container">
+            <div className={styles.sectionHeader}>
+              <div>
+                <p className={styles.sectionLabel}>Limited Time</p>
+                <h2 className={styles.sectionTitle}>Special Deals</h2>
+              </div>
+              <Link to="/catalogue" className={styles.sectionLink}>
+                View All →
+              </Link>
+            </div>
+            <ProductCarousel products={specialDeals} />
+          </div>
+        </section>
+      )}
 
       {/* Categories */}
       <section className={styles.categories}>

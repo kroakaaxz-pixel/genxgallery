@@ -127,6 +127,15 @@
   padding: var(--space-5xl) 0;
 }
 
+/* Carousel Sections */
+.carouselSection {
+  padding: var(--space-5xl) 0;
+}
+
+.carouselSectionAlt {
+  background: var(--color-cream-dark);
+}
+
 .sectionHeader {
   display: flex;
   align-items: baseline;

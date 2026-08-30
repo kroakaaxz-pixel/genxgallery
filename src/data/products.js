@@ -54,6 +54,8 @@ export const products = [
     badge: 'Best Seller',
     naturalRatio: 0.75,
     status: 'Active',
+    isNewArrival: false,
+    isSpecialDeal: true,
   },
   {
     id: 2,
@@ -67,6 +69,8 @@ export const products = [
     badge: 'New',
     naturalRatio: 0.75,
     status: 'Active',
+    isNewArrival: true,
+    isSpecialDeal: false,
   },
   {
     id: 3,
@@ -79,6 +83,8 @@ export const products = [
     image: 'https://images.unsplash.com/photo-1621135802920-133df287f89c?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
+    isNewArrival: false,
+    isSpecialDeal: true,
   },
   {
     id: 4,
@@ -92,6 +98,8 @@ export const products = [
     badge: 'Limited',
     naturalRatio: 0.75,
     status: 'Active',
+    isNewArrival: false,
+    isSpecialDeal: false,
   },
 
   // === ANIME ===
@@ -107,6 +115,8 @@ export const products = [
     badge: 'Popular',
     naturalRatio: 0.75,
     status: 'Active',
+    isNewArrival: false,
+    isSpecialDeal: true,
   },
   {
     id: 6,
@@ -119,6 +129,8 @@ export const products = [
     image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
+    isNewArrival: true,
+    isSpecialDeal: false,
   },
   {
     id: 7,
@@ -132,6 +144,8 @@ export const products = [
     badge: 'Staff Pick',
     naturalRatio: 0.75,
     status: 'Active',
+    isNewArrival: true,
+    isSpecialDeal: false,
   },
   {
     id: 8,
@@ -144,6 +158,8 @@ export const products = [
     image: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
+    isNewArrival: false,
+    isSpecialDeal: false,
   },
 
   // === POSTERS ===
@@ -158,6 +174,8 @@ export const products = [
     image: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
+    isNewArrival: true,
+    isSpecialDeal: false,
   },
   {
     id: 10,
@@ -170,6 +188,8 @@ export const products = [
     image: 'https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
+    isNewArrival: false,
+    isSpecialDeal: true,
   },
   {
     id: 11,
@@ -182,6 +202,8 @@ export const products = [
     image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
+    isNewArrival: false,
+    isSpecialDeal: false,
   },
   {
     id: 12,
@@ -195,6 +217,8 @@ export const products = [
     badge: 'New',
     naturalRatio: 0.67,
     status: 'Active',
+    isNewArrival: true,
+    isSpecialDeal: false,
   },
   {
     id: 13,
@@ -207,6 +231,8 @@ export const products = [
     image: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
+    isNewArrival: false,
+    isSpecialDeal: true,
   },
 ];
 
@@ -234,3 +260,9 @@ export const getDiscountedSizePrice = (product, sizeId) => {
   if (!product.discountPercent) return basePrice;
   return Math.round(basePrice * (1 - product.discountPercent / 100));
 };
+
+export const getNewArrivals = () =>
+  products.filter((p) => p.status === 'Active' && p.isNewArrival);
+
+export const getSpecialDeals = () =>
+  products.filter((p) => p.status === 'Active' && p.isSpecialDeal);

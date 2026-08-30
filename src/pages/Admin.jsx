@@ -62,6 +62,8 @@ const emptyProduct = {
   badge: '',
   naturalRatio: 0.75,
   status: 'Active',
+  isNewArrival: false,
+  isSpecialDeal: false,
 };
 
 export default function Admin() {
@@ -365,6 +367,19 @@ export default function Admin() {
                       {productStatuses.map((s) => (<option key={s} value={s}>{s}</option>))}
                     </select>
                   </div>
+                  <div className={`${styles.formField} ${styles.formFieldFull}`}>
+                    <label>Showcase Tags</label>
+                    <div className={styles.sizeCheckboxes}>
+                      <label className={styles.checkboxLabel}>
+                        <input type="checkbox" checked={formData.isNewArrival || false} onChange={() => handleFieldChange('isNewArrival', !formData.isNewArrival)} />
+                        New Arrival
+                      </label>
+                      <label className={styles.checkboxLabel}>
+                        <input type="checkbox" checked={formData.isSpecialDeal || false} onChange={() => handleFieldChange('isSpecialDeal', !formData.isSpecialDeal)} />
+                        Special Deal
+                      </label>
+                    </div>
+                  </div>
                   <div className={styles.formField}>
                     <label>Image URL</label>
                     <input value={formData.image} onChange={(e) => handleFieldChange('image', e.target.value)} className={styles.input} />
@@ -415,6 +430,8 @@ export default function Admin() {
                       <td className={styles.cellName}>
                         {product.name}
                         {product.badge && <span className={styles.tableBadge}>{product.badge}</span>}
+                        {product.isNewArrival && <span className={styles.tableTagNew}>New Arrival</span>}
+                        {product.isSpecialDeal && <span className={styles.tableTagDeal}>Special Deal</span>}
                       </td>
                       <td className={styles.cellCategory}>{product.category}</td>
                       <td className={styles.cellPrice}>
