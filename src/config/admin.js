@@ -12,8 +12,8 @@ export const ADMIN_PASSWORD = 'genx2026';
  * Social media links
  * Update these constants with your real handles/numbers.
  */
-export const INSTAGRAM_HANDLE = '@genxgallery';
-export const INSTAGRAM_URL = 'https://instagram.com/@genxgallery';
+export const INSTAGRAM_HANDLE = 'genxgallery';
+export const INSTAGRAM_URL = 'https://instagram.com/genxgallery';
 
-export const WHATSAPP_NUMBER = '8011789331';
-export const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}`;
+export const WHATSAPP_NUMBER = '918011789331';
+export const WHATSAPP_URL = `https://wa.me/${918011789331}`;
