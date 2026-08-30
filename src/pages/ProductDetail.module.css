@@ -67,6 +67,21 @@
   text-transform: uppercase;
   color: var(--color-accent-text);
   margin-bottom: var(--space-sm);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.unframedTag {
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  background: rgba(45, 106, 79, 0.1);
+  border: 1px solid rgba(45, 106, 79, 0.25);
+  border-radius: 2px;
+  color: #2D6A4F;
+  text-transform: uppercase;
 }
 
 .productName {

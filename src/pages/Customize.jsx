@@ -5,6 +5,9 @@ import { uploadImage } from '../hooks/uploadImage';
 import { formatPrice } from '../utils/currency';
 import styles from './Customize.module.css';
 
+// Only framed-posters products are available for customization
+const framedProducts = products.filter((p) => p.category === 'framed-posters' && p.status === 'Active');
+
 function getCoverFit(sourceW, sourceH, frameW, frameH) {
   const srcRatio = sourceW / sourceH;
   const frameRatio = frameW / frameH;
@@ -238,7 +241,7 @@ export default function Customize() {
 
               {source === 'browse' ? (
                 <div className={styles.designGrid}>
-                  {products.map((product) => (
+                  {framedProducts.map((product) => (
                     <button
                       key={product.id}
                       className={`${styles.designOption} ${selectedDesign?.id === product.id ? styles.designOptionActive : ''}`}

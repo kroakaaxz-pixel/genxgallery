@@ -44,19 +44,19 @@ const statuses = ['Processing', 'Shipped', 'Delivered', 'Cancelled', 'Returned']
 
 // Product IDs and their base prices (from products.js)
 const productPool = [
-  { id: 1, name: 'Skyline at Dusk', category: 'cars', price: 2299, discountPercent: 15 },
-  { id: 2, name: 'Porsche 911 Study', category: 'cars', price: 2699, discountPercent: 0 },
-  { id: 3, name: 'Midnight Runner', category: 'cars', price: 2099, discountPercent: 10 },
-  { id: 4, name: 'Lambo & Gold', category: 'cars', price: 3199, discountPercent: 0 },
-  { id: 5, name: 'Neon District', category: 'anime', price: 2499, discountPercent: 20 },
-  { id: 6, name: 'Mecha Blueprint', category: 'anime', price: 2299, discountPercent: 0 },
-  { id: 7, name: 'Spirit Forest', category: 'anime', price: 2899, discountPercent: 0 },
-  { id: 8, name: 'Samurai Moon', category: 'anime', price: 2399, discountPercent: 5 },
-  { id: 9, name: 'Brutalist Summer', category: 'posters', price: 1699, discountPercent: 0 },
-  { id: 10, name: 'Coffee & Typography', category: 'posters', price: 1599, discountPercent: 25 },
-  { id: 11, name: 'Vintage Travel', category: 'posters', price: 1899, discountPercent: 0 },
-  { id: 12, name: 'Cinema Noir', category: 'posters', price: 1999, discountPercent: 0 },
-  { id: 13, name: 'Space Oddity', category: 'posters', price: 2099, discountPercent: 10 },
+  { id: 1, name: 'Skyline at Dusk', category: 'framed-posters', subCategory: 'cars', price: 2299, discountPercent: 15 },
+  { id: 2, name: 'Porsche 911 Study', category: 'framed-posters', subCategory: 'cars', price: 2699, discountPercent: 0 },
+  { id: 3, name: 'Midnight Runner', category: 'framed-posters', subCategory: 'cars', price: 2099, discountPercent: 10 },
+  { id: 4, name: 'Lambo & Gold', category: 'framed-posters', subCategory: 'cars', price: 3199, discountPercent: 0 },
+  { id: 5, name: 'Neon District', category: 'framed-posters', subCategory: 'anime', price: 2499, discountPercent: 20 },
+  { id: 6, name: 'Mecha Blueprint', category: 'framed-posters', subCategory: 'anime', price: 2299, discountPercent: 0 },
+  { id: 7, name: 'Spirit Forest', category: 'framed-posters', subCategory: 'anime', price: 2899, discountPercent: 0 },
+  { id: 8, name: 'Samurai Moon', category: 'framed-posters', subCategory: 'anime', price: 2399, discountPercent: 5 },
+  { id: 9, name: 'Brutalist Summer', category: 'framed-posters', subCategory: 'others', price: 1699, discountPercent: 0 },
+  { id: 10, name: 'Coffee & Typography', category: 'framed-posters', subCategory: 'others', price: 1599, discountPercent: 25 },
+  { id: 11, name: 'Vintage Travel', category: 'framed-posters', subCategory: 'others', price: 1899, discountPercent: 0 },
+  { id: 12, name: 'Cinema Noir', category: 'framed-posters', subCategory: 'others', price: 1999, discountPercent: 0 },
+  { id: 13, name: 'Space Oddity', category: 'framed-posters', subCategory: 'others', price: 2099, discountPercent: 10 },
 ];
 
 const sizeOptions = [
@@ -248,7 +248,7 @@ export function computeAnalytics(orders, costRatio = 0.42) {
     });
   });
 
-  const categoryColors = { cars: '#C23B22', anime: '#6B4C9A', posters: '#2D6A4F' };
+  const categoryColors = { 'framed-posters': '#C23B22', posters: '#2D6A4F' };
   const categorySalesData = Object.entries(categoryMap).map(([name, value]) => ({
     name: name.charAt(0).toUpperCase() + name.slice(1),
     value: Math.round(value),

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, Navigate, Link } from 'react-router-dom';
-import { getProductById, frameSizes, frameMaterials, getSizePrice, getDiscountedSizePrice } from '../data/products';
+import { getProductById, frameSizes, frameMaterials, posterSizes, getSizePrice, getPosterSizePrice, getDiscountedSizePrice, getDiscountedPrice } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../utils/currency';
 import styles from './ProductDetail.module.css';
@@ -10,25 +10,33 @@ export default function ProductDetail() {
   const product = getProductById(id);
   const { addItem } = useCart();
 
+  const isFramed = product?.category === 'framed-posters';
+  const sizes = isFramed ? frameSizes : posterSizes;
+  const getSizeFn = isFramed ? getSizePrice : getPosterSizePrice;
+
   const [selectedSize, setSelectedSize] = useState(product?.sizes?.[0] || 'a4');
   const [selectedMaterial, setSelectedMaterial] = useState('black');
 
   if (!product) return <Navigate to="/404" replace />;
 
-  const availableSizes = frameSizes.filter((s) => product.sizes?.includes(s.id));
+  const availableSizes = sizes.filter((s) => product.sizes?.includes(s.id));
   const hasDiscount = product.discountPercent > 0;
-  const currentPrice = getDiscountedSizePrice(product, selectedSize);
-  const originalPrice = getSizePrice(selectedSize);
+  const currentPrice = isFramed
+    ? getDiscountedSizePrice(product, selectedSize)
+    : Math.round(getPosterSizePrice(selectedSize) * (1 - (product.discountPercent || 0) / 100));
+  const originalPrice = getSizeFn(selectedSize);
 
   const handleAddToCart = () => {
-    const size = frameSizes.find((s) => s.id === selectedSize);
-    const material = frameMaterials.find((m) => m.id === selectedMaterial);
+    const size = sizes.find((s) => s.id === selectedSize);
+    const material = isFramed ? frameMaterials.find((m) => m.id === selectedMaterial) : null;
     addItem(product, {
       size: selectedSize,
       sizeLabel: size?.label,
       sizePrice: currentPrice,
-      material: selectedMaterial,
-      materialName: material?.name,
+      ...(isFramed && {
+        material: selectedMaterial,
+        materialName: material?.name,
+      }),
     });
   };
 
@@ -38,8 +46,12 @@ export default function ProductDetail() {
         <nav className={styles.breadcrumb}>
           <Link to="/catalogue">Shop</Link>
           <span>/</span>
-          <Link to={`/category/${product.category}`}>
-            {product.category.charAt(0).toUpperCase() + product.category.slice(1)}
+          <Link to={`/${product.category}`}>
+            {product.category === 'framed-posters' ? 'Framed Posters' : 'Posters'}
+          </Link>
+          <span>/</span>
+          <Link to={`/${product.category}/${product.subCategory}`}>
+            {product.subCategory.charAt(0).toUpperCase() + product.subCategory.slice(1)}
           </Link>
           <span>/</span>
           {product.name}
@@ -56,7 +68,10 @@ export default function ProductDetail() {
           </div>
 
           <div className={styles.infoSection}>
-            <p className={styles.productCategory}>{product.category}</p>
+            <p className={styles.productCategory}>
+              {product.subCategory.charAt(0).toUpperCase() + product.subCategory.slice(1)}
+              {!isFramed && <span className={styles.unframedTag}>Unframed</span>}
+            </p>
             <h1 className={styles.productName}>{product.name}</h1>
             <p className={styles.productPrice}>
               {hasDiscount ? (
@@ -77,7 +92,9 @@ export default function ProductDetail() {
               <p className={styles.optionLabel}>Size</p>
               <div className={styles.sizeOptions}>
                 {availableSizes.map((size) => {
-                  const sizeDiscounted = getDiscountedSizePrice(product, size.id);
+                  const sizePrice = isFramed
+                    ? getDiscountedSizePrice(product, size.id)
+                    : Math.round(size.price * (1 - (product.discountPercent || 0) / 100));
                   return (
                     <button
                       key={size.id}
@@ -89,7 +106,7 @@ export default function ProductDetail() {
                         {hasDiscount ? (
                           <>
                             <span style={{ textDecoration: 'line-through', opacity: 0.5 }}>{formatPrice(size.price)}</span>
-                            {' '}{formatPrice(sizeDiscounted)}
+                            {' '}{formatPrice(sizePrice)}
                           </>
                         ) : (
                           formatPrice(size.price)
@@ -101,29 +118,33 @@ export default function ProductDetail() {
               </div>
             </div>
 
-            <div className={styles.optionGroup}>
-              <p className={styles.optionLabel}>Frame</p>
-              <div className={styles.materialOptions}>
-                {frameMaterials.map((mat) => (
-                  <button
-                    key={mat.id}
-                    onClick={() => setSelectedMaterial(mat.id)}
-                    className={`${styles.materialBtn} ${selectedMaterial === mat.id ? styles.materialBtnActive : ''}`}
-                    style={{ backgroundColor: mat.hex }}
-                    title={mat.name}
-                    aria-label={`Frame: ${mat.name}`}
-                  />
-                ))}
+            {isFramed && (
+              <div className={styles.optionGroup}>
+                <p className={styles.optionLabel}>Frame</p>
+                <div className={styles.materialOptions}>
+                  {frameMaterials.map((mat) => (
+                    <button
+                      key={mat.id}
+                      onClick={() => setSelectedMaterial(mat.id)}
+                      className={`${styles.materialBtn} ${selectedMaterial === mat.id ? styles.materialBtnActive : ''}`}
+                      style={{ backgroundColor: mat.hex }}
+                      title={mat.name}
+                      aria-label={`Frame: ${mat.name}`}
+                    />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className={styles.actions}>
               <button onClick={handleAddToCart} className={styles.addToCartBtn}>
                 Add to Cart — {formatPrice(currentPrice)}
               </button>
-              <Link to="/customize" className={styles.customizeBtn}>
-                Customize
-              </Link>
+              {isFramed && (
+                <Link to="/customize" className={styles.customizeBtn}>
+                  Customize
+                </Link>
+              )}
             </div>
 
             <div className={styles.details}>
@@ -131,17 +152,26 @@ export default function ProductDetail() {
                 <span className={styles.detailLabel}>Print</span>
                 <span className={styles.detailValue}>Giclée on archival paper</span>
               </div>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Frame</span>
-                <span className={styles.detailValue}>{frameMaterials.find((m) => m.id === selectedMaterial)?.name}</span>
-              </div>
-              <div className={styles.detailItem}>
-                <span className={styles.detailLabel}>Glass</span>
-                <span className={styles.detailValue}>Museum-quality acrylic</span>
-              </div>
+              {isFramed ? (
+                <>
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>Frame</span>
+                    <span className={styles.detailValue}>{frameMaterials.find((m) => m.id === selectedMaterial)?.name}</span>
+                  </div>
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>Glass</span>
+                    <span className={styles.detailValue}>Museum-quality acrylic</span>
+                  </div>
+                </>
+              ) : (
+                <div className={styles.detailItem}>
+                  <span className={styles.detailLabel}>Type</span>
+                  <span className={styles.detailValue}>Unframed print</span>
+                </div>
+              )}
               <div className={styles.detailItem}>
                 <span className={styles.detailLabel}>Shipping</span>
-                <span className={styles.detailValue}>Ready to hang, ships in 3–5 days</span>
+                <span className={styles.detailValue}>{isFramed ? 'Ready to hang, ships in 3–5 days' : 'Ships in a protective tube, 3–5 days'}</span>
               </div>
             </div>
           </div>

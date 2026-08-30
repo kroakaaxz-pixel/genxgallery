@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { getActiveProducts, getNewArrivals, getSpecialDeals, categories, getDiscountedPrice } from '../data/products';
+import { getActiveProducts, getNewArrivals, getSpecialDeals, categories, subCategories, getDiscountedPrice } from '../data/products';
 import { formatPrice } from '../utils/currency';
 import ProductCard from '../components/ProductCard';
 import ProductCarousel from '../components/ProductCarousel';
@@ -11,12 +11,6 @@ const featuredProducts = allProducts.filter((p) =>
 );
 const newArrivals = getNewArrivals();
 const specialDeals = getSpecialDeals();
-
-const categoryImages = {
-  cars: 'https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=800&h=1000&fit=crop',
-  anime: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=800&h=1000&fit=crop',
-  posters: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=800&h=1000&fit=crop',
-};
 
 export default function Home() {
   return (
@@ -150,12 +144,12 @@ export default function Home() {
             {categories.map((cat, index) => (
               <Link
                 key={cat.id}
-                to={`/category/${cat.id}`}
+                to={`/${cat.id}`}
                 className={styles.categoryCard}
               >
                 <div
                   className={styles.categoryCardBg}
-                  style={{ backgroundImage: `url(${categoryImages[cat.id]})` }}
+                  style={{ backgroundColor: cat.accent }}
                 />
                 <div className={styles.categoryCardOverlay} />
                 <div className={styles.categoryCardContent}>

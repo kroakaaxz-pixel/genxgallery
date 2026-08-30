@@ -25,7 +25,7 @@
 /* Desktop Controls */
 .controls {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-lg);
   margin-bottom: var(--space-2xl);
@@ -37,12 +37,29 @@
   display: flex;
   align-items: center;
   gap: var(--space-lg);
+  flex-shrink: 0;
+}
+
+.filterGroups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
 }
 
 .filterGroup {
   display: flex;
+  align-items: center;
   gap: var(--space-sm);
   flex-wrap: wrap;
+}
+
+.filterGroupLabel {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+  min-width: 80px;
 }
 
 .filterBtn {
@@ -140,13 +157,23 @@
   background: var(--color-accent);
 }
 
+.mobileFilterSection {
+  margin-bottom: var(--space-md);
+}
+
+.mobileFilterLabel {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+  margin-bottom: var(--space-sm);
+}
+
 .mobileFilterRow {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-sm);
-  padding: var(--space-md) 0;
-  border-bottom: 1px solid var(--color-border);
-  margin-bottom: var(--space-lg);
 }
 
 /* Grid */

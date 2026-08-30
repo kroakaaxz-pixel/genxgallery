@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { products as initialProducts, categories, productStatuses, frameSizes, getDiscountedPrice } from '../data/products';
+import { products as initialProducts, categories, subCategories, productStatuses, frameSizes, getDiscountedPrice } from '../data/products';
 import { initialOrders, orderStatuses, computeAnalytics } from '../data/orders';
 import { ADMIN_PASSWORD } from '../config/admin';
 import { formatPrice } from '../utils/currency';
@@ -53,7 +53,8 @@ function storeOrders(orders) {
 
 const emptyProduct = {
   name: '',
-  category: 'cars',
+  category: 'framed-posters',
+  subCategory: 'cars',
   description: '',
   price: 0,
   discountPercent: 0,
@@ -354,6 +355,12 @@ export default function Admin() {
                     </select>
                   </div>
                   <div className={styles.formField}>
+                    <label>Sub-category</label>
+                    <select value={formData.subCategory} onChange={(e) => handleFieldChange('subCategory', e.target.value)} className={styles.input}>
+                      {subCategories.map((s) => (<option key={s.id} value={s.id}>{s.name}</option>))}
+                    </select>
+                  </div>
+                  <div className={styles.formField}>
                     <label>Price (₹)</label>
                     <input type="number" value={formData.price} onChange={(e) => handleFieldChange('price', Number(e.target.value))} className={styles.input} />
                   </div>
@@ -433,7 +440,11 @@ export default function Admin() {
                         {product.isNewArrival && <span className={styles.tableTagNew}>New Arrival</span>}
                         {product.isSpecialDeal && <span className={styles.tableTagDeal}>Special Deal</span>}
                       </td>
-                      <td className={styles.cellCategory}>{product.category}</td>
+                      <td className={styles.cellCategory}>
+                        {product.category === 'framed-posters' ? 'Framed' : 'Poster'}
+                        <br />
+                        <span style={{ fontSize: '0.7rem', color: 'var(--color-ink-muted)' }}>{product.subCategory}</span>
+                      </td>
                       <td className={styles.cellPrice}>
                         {product.discountPercent > 0 ? (
                           <>

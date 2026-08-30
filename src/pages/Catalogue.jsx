@@ -1,11 +1,10 @@
 import { useState, useMemo } from 'react';
-import { getActiveProducts } from '../data/products';
+import { getActiveProducts, categories, subCategories } from '../data/products';
 import ProductCard from '../components/ProductCard';
 import styles from './Catalogue.module.css';
 
 const allProducts = getActiveProducts();
 
-const filterOptions = ['all', 'cars', 'anime', 'posters'];
 const sortOptions = [
   { value: 'featured', label: 'Featured' },
   { value: 'price-asc', label: 'Price: Low to High' },
@@ -14,12 +13,20 @@ const sortOptions = [
 ];
 
 export default function Catalogue() {
-  const [filter, setFilter] = useState('all');
+  const [catFilter, setCatFilter] = useState('all');
+  const [subFilter, setSubFilter] = useState('all');
   const [sort, setSort] = useState('featured');
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const filtered = useMemo(() => {
-    let items = filter === 'all' ? [...allProducts] : allProducts.filter((p) => p.category === filter);
+    let items = [...allProducts];
+
+    if (catFilter !== 'all') {
+      items = items.filter((p) => p.category === catFilter);
+    }
+    if (subFilter !== 'all') {
+      items = items.filter((p) => p.subCategory === subFilter);
+    }
 
     switch (sort) {
       case 'price-asc':
@@ -36,28 +43,52 @@ export default function Catalogue() {
     }
 
     return items;
-  }, [filter, sort]);
+  }, [catFilter, subFilter, sort]);
+
+  const activeFilterCount = (catFilter !== 'all' ? 1 : 0) + (subFilter !== 'all' ? 1 : 0);
 
   return (
     <main className={styles.page}>
       <div className="container">
         <div className={styles.pageHeader}>
           <p className={styles.pageLabel}>The Collection</p>
-          <h1 className={styles.pageTitle}>All Frames</h1>
+          <h1 className={styles.pageTitle}>All Prints</h1>
         </div>
 
         {/* Desktop controls */}
         <div className={styles.controls}>
-          <div className={styles.filterGroup}>
-            {filterOptions.map((opt) => (
+          <div className={styles.filterGroups}>
+            <div className={styles.filterGroup}>
+              <span className={styles.filterGroupLabel}>Type</span>
               <button
-                key={opt}
-                onClick={() => setFilter(opt)}
-                className={`${styles.filterBtn} ${filter === opt ? styles.filterBtnActive : ''}`}
+                onClick={() => { setCatFilter('all'); setSubFilter('all'); }}
+                className={`${styles.filterBtn} ${catFilter === 'all' && subFilter === 'all' ? styles.filterBtnActive : ''}`}
               >
-                {opt === 'all' ? 'All' : opt.charAt(0).toUpperCase() + opt.slice(1)}
+                All
               </button>
-            ))}
+              {categories.map((cat) => (
+                <button
+                  key={cat.id}
+                  onClick={() => { setCatFilter(cat.id); setSubFilter('all'); }}
+                  className={`${styles.filterBtn} ${catFilter === cat.id && subFilter === 'all' ? styles.filterBtnActive : ''}`}
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+
+            <div className={styles.filterGroup}>
+              <span className={styles.filterGroupLabel}>Sub-category</span>
+              {subCategories.map((sub) => (
+                <button
+                  key={sub.id}
+                  onClick={() => setSubFilter(sub.id)}
+                  className={`${styles.filterBtn} ${subFilter === sub.id ? styles.filterBtnActive : ''}`}
+                >
+                  {sub.name}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className={styles.controlsRight}>
@@ -92,7 +123,7 @@ export default function Catalogue() {
               <line x1="4" y1="18" x2="12" y2="18" />
             </svg>
             Filters
-            {filter !== 'all' && (
+            {activeFilterCount > 0 && (
               <span className={styles.activeFilterDot} />
             )}
           </button>
@@ -115,16 +146,39 @@ export default function Catalogue() {
         {/* Mobile filter panel */}
         {filtersOpen && (
           <div className={styles.mobileFilterPanel}>
-            <div className={styles.mobileFilterRow}>
-              {filterOptions.map((opt) => (
+            <div className={styles.mobileFilterSection}>
+              <p className={styles.mobileFilterLabel}>Type</p>
+              <div className={styles.mobileFilterRow}>
                 <button
-                  key={opt}
-                  onClick={() => { setFilter(opt); setFiltersOpen(false); }}
-                  className={`${styles.filterBtn} ${filter === opt ? styles.filterBtnActive : ''}`}
+                  onClick={() => { setCatFilter('all'); setSubFilter('all'); setFiltersOpen(false); }}
+                  className={`${styles.filterBtn} ${catFilter === 'all' && subFilter === 'all' ? styles.filterBtnActive : ''}`}
                 >
-                  {opt === 'all' ? 'All' : opt.charAt(0).toUpperCase() + opt.slice(1)}
+                  All
                 </button>
-              ))}
+                {categories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => { setCatFilter(cat.id); setSubFilter('all'); setFiltersOpen(false); }}
+                    className={`${styles.filterBtn} ${catFilter === cat.id && subFilter === 'all' ? styles.filterBtnActive : ''}`}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className={styles.mobileFilterSection}>
+              <p className={styles.mobileFilterLabel}>Sub-category</p>
+              <div className={styles.mobileFilterRow}>
+                {subCategories.map((sub) => (
+                  <button
+                    key={sub.id}
+                    onClick={() => { setSubFilter(sub.id); setFiltersOpen(false); }}
+                    className={`${styles.filterBtn} ${subFilter === sub.id ? styles.filterBtnActive : ''}`}
+                  >
+                    {sub.name}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}

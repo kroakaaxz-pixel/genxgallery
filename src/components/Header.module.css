@@ -51,6 +51,51 @@
   gap: var(--space-xl);
 }
 
+/* Desktop dropdown */
+.navDropdown {
+  position: relative;
+}
+
+.dropdownMenu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 160px;
+  list-style: none;
+  background: var(--color-cream);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  padding: 8px 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  z-index: 150;
+}
+
+.navDropdown:hover .dropdownMenu {
+  opacity: 1;
+  visibility: visible;
+}
+
+.dropdownLink {
+  display: block;
+  padding: 8px 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-ink-light);
+  text-decoration: none;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.dropdownLink:hover {
+  color: var(--color-ink);
+  background: var(--color-cream-dark);
+}
+
 .navLink {
   font-size: 0.875rem;
   font-weight: 500;
@@ -347,5 +392,57 @@
     display: block;
     padding: var(--space-md) 0;
     border-bottom: 1px solid var(--color-border);
+  }
+
+  .mobileNavGroup {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .mobileNavGroupToggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: var(--space-md) 0;
+    font-size: 1.125rem;
+    font-family: var(--font-display);
+    font-weight: 500;
+    color: var(--color-ink);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .mobileNavArrow {
+    font-size: 1.2rem;
+    transition: transform 0.2s ease;
+    color: var(--color-ink-muted);
+  }
+
+  .mobileNavArrowOpen {
+    transform: rotate(90deg);
+  }
+
+  .mobileNavSub {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: var(--space-md);
+    gap: 0;
+  }
+
+  .mobileNavLink {
+    display: block;
+    padding: 10px 0 10px var(--space-lg);
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: var(--color-ink-light);
+    text-decoration: none;
+    transition: color 0.15s ease;
+  }
+
+  .mobileNavLink:hover,
+  .mobileNavLinkActive {
+    color: var(--color-ink);
   }
 }

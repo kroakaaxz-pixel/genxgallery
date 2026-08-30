@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { getActiveProducts } from '../data/products';
+import { getActiveProducts, categories, subCategories } from '../data/products';
 import styles from './Header.module.css';
 
 const allProducts = getActiveProducts();
@@ -10,6 +10,7 @@ export default function Header() {
   const { totalItems } = useCart();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileExpanded, setMobileExpanded] = useState(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const location = useLocation();
@@ -21,6 +22,7 @@ export default function Header() {
   // Close on route change
   useEffect(() => {
     setMobileOpen(false);
+    setMobileExpanded(null);
     setSearchOpen(false);
     setQuery('');
   }, [location]);
@@ -28,18 +30,14 @@ export default function Header() {
   // Close on tap outside
   useEffect(() => {
     if (!mobileOpen) return;
-
     const handleOutsideClick = (e) => {
       if (mobileNavRef.current && !mobileNavRef.current.contains(e.target)) {
         setMobileOpen(false);
       }
     };
-
-    // Delay to avoid the opening click from immediately closing
     const timer = setTimeout(() => {
       document.addEventListener('click', handleOutsideClick);
     }, 10);
-
     return () => {
       clearTimeout(timer);
       document.removeEventListener('click', handleOutsideClick);
@@ -102,7 +100,8 @@ export default function Header() {
     return allProducts.filter(
       (p) =>
         p.name.toLowerCase().includes(q) ||
-        p.category.toLowerCase().includes(q)
+        p.category.toLowerCase().includes(q) ||
+        p.subCategory.toLowerCase().includes(q)
     ).slice(0, 6);
   }, [query]);
 
@@ -147,36 +146,30 @@ export default function Header() {
                   Shop
                 </NavLink>
               </li>
-              <li>
-                <NavLink
-                  to="/category/cars"
-                  className={({ isActive }) =>
-                    `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`
-                  }
-                >
-                  Cars
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/category/anime"
-                  className={({ isActive }) =>
-                    `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`
-                  }
-                >
-                  Anime
-                </NavLink>
-              </li>
-              <li>
-                <NavLink
-                  to="/category/posters"
-                  className={({ isActive }) =>
-                    `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`
-                  }
-                >
-                  Posters
-                </NavLink>
-              </li>
+              {categories.map((cat) => (
+                <li key={cat.id} className={styles.navDropdown}>
+                  <NavLink
+                    to={`/${cat.id}`}
+                    className={({ isActive }) =>
+                      `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`
+                    }
+                  >
+                    {cat.name}
+                  </NavLink>
+                  <ul className={styles.dropdownMenu}>
+                    {subCategories.map((sub) => (
+                      <li key={sub.id}>
+                        <NavLink
+                          to={`/${cat.id}/${sub.id}`}
+                          className={styles.dropdownLink}
+                        >
+                          {sub.name}
+                        </NavLink>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+              ))}
               <li>
                 <NavLink
                   to="/customize"
@@ -245,7 +238,7 @@ export default function Header() {
                                 className={styles.searchResultImg}
                               />
                               <div className={styles.searchResultInfo}>
-                                <span className={styles.searchResultCategory}>{product.category}</span>
+                                <span className={styles.searchResultCategory}>{product.subCategory}</span>
                                 <span className={styles.searchResultName}>{product.name}</span>
                               </div>
                             </button>
@@ -298,9 +291,32 @@ export default function Header() {
         <div className={styles.mobileNavBackdrop} ref={mobileNavRef} onClick={closeMobile}>
           <nav className={styles.mobileNav} onClick={(e) => e.stopPropagation()}>
             <NavLink to="/catalogue" className={styles.navLink} onClick={closeMobile}>Shop All</NavLink>
-            <NavLink to="/category/cars" className={styles.navLink} onClick={closeMobile}>Cars</NavLink>
-            <NavLink to="/category/anime" className={styles.navLink} onClick={closeMobile}>Anime</NavLink>
-            <NavLink to="/category/posters" className={styles.navLink} onClick={closeMobile}>Posters</NavLink>
+            {categories.map((cat) => (
+              <div key={cat.id} className={styles.mobileNavGroup}>
+                <button
+                  className={styles.mobileNavGroupToggle}
+                  onClick={() => setMobileExpanded(mobileExpanded === cat.id ? null : cat.id)}
+                  aria-expanded={mobileExpanded === cat.id}
+                >
+                  {cat.name}
+                  <span className={`${styles.mobileNavArrow} ${mobileExpanded === cat.id ? styles.mobileNavArrowOpen : ''}`}>›</span>
+                </button>
+                {mobileExpanded === cat.id && (
+                  <div className={styles.mobileNavSub}>
+                    {subCategories.map((sub) => (
+                      <NavLink
+                        key={sub.id}
+                        to={`/${cat.id}/${sub.id}`}
+                        className={styles.mobileNavLink}
+                        onClick={closeMobile}
+                      >
+                        {sub.name}
+                      </NavLink>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
             <NavLink to="/customize" className={styles.navLink} onClick={closeMobile}>Customize</NavLink>
             <NavLink to="/about" className={styles.navLink} onClick={closeMobile}>About</NavLink>
           </nav>

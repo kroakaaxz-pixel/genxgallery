@@ -81,6 +81,48 @@
   padding: var(--space-4xl) 0;
 }
 
+.subNav {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-2xl);
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.subNavLink {
+  padding: 8px 16px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border: 1.5px solid var(--color-border);
+  border-radius: 2px;
+  color: var(--color-ink-light);
+  background: transparent;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.subNavLink:hover {
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+}
+
+.subNavLinkActive {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: var(--color-cream);
+}
+
+.emptyState {
+  text-align: center;
+  padding: var(--space-4xl) 0;
+  color: var(--color-ink-muted);
+  font-size: 1rem;
+}
+
 .intro {
   max-width: 640px;
   margin-bottom: var(--space-3xl);
