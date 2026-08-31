@@ -22,6 +22,8 @@ export const subCategories = [
   { id: 'others', name: 'Others', accent: '#2D6A4F' },
 ];
 
+import { getDeletedProductIds } from './deletedProducts';
+
 export const getSubCategoryById = (id) => subCategories.find((s) => s.id === id);
 
 export const frameMaterials = [
@@ -355,15 +357,26 @@ export const products = [
   },
 ];
 
-export const getProductById = (id) => products.find((p) => p.id === Number(id));
+export const getProductById = (id) => {
+  const numId = Number(id);
+  if (getDeletedProductIds().includes(numId)) return undefined;
+  return products.find((p) => p.id === numId);
+};
 
-export const getActiveProducts = () => products.filter((p) => p.status === 'Active');
+export const getActiveProducts = () => {
+  const deleted = getDeletedProductIds();
+  return products.filter((p) => p.status === 'Active' && !deleted.includes(p.id));
+};
 
-export const getProductsByCategory = (category) =>
-  products.filter((p) => p.category === category && p.status === 'Active');
+export const getProductsByCategory = (category) => {
+  const deleted = getDeletedProductIds();
+  return products.filter((p) => p.category === category && p.status === 'Active' && !deleted.includes(p.id));
+};
 
-export const getProductsBySubCategory = (category, subCategory) =>
-  products.filter((p) => p.category === category && p.subCategory === subCategory && p.status === 'Active');
+export const getProductsBySubCategory = (category, subCategory) => {
+  const deleted = getDeletedProductIds();
+  return products.filter((p) => p.category === category && p.subCategory === subCategory && p.status === 'Active' && !deleted.includes(p.id));
+};
 
 export const getCategoryById = (id) => categories.find((c) => c.id === id);
 
@@ -390,11 +403,15 @@ export const getDiscountedSizePrice = (product, sizeId) => {
   return Math.round(basePrice * (1 - product.discountPercent / 100));
 };
 
-export const getNewArrivals = () =>
-  products.filter((p) => p.status === 'Active' && p.isNewArrival);
+export const getNewArrivals = () => {
+  const deleted = getDeletedProductIds();
+  return products.filter((p) => p.status === 'Active' && p.isNewArrival && !deleted.includes(p.id));
+};
 
-export const getSpecialDeals = () =>
-  products.filter((p) => p.status === 'Active' && p.isSpecialDeal);
+export const getSpecialDeals = () => {
+  const deleted = getDeletedProductIds();
+  return products.filter((p) => p.status === 'Active' && p.isSpecialDeal && !deleted.includes(p.id));
+};
 
 // Mock review data — display-only, read-only for now.
 // A real review system would need backend storage and authentication.
