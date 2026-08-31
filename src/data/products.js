@@ -22,8 +22,6 @@ export const subCategories = [
   { id: 'others', name: 'Others', accent: '#2D6A4F' },
 ];
 
-import { getDeletedProductIds } from './deletedProducts';
-
 export const getSubCategoryById = (id) => subCategories.find((s) => s.id === id);
 
 export const frameMaterials = [
@@ -64,6 +62,7 @@ export const products = [
     badge: 'Best Seller',
     naturalRatio: 0.75,
     status: 'Active',
+    isDeleted: false,
     isNewArrival: false,
     isSpecialDeal: true,
   },
@@ -80,6 +79,7 @@ export const products = [
     badge: 'New',
     naturalRatio: 0.75,
     status: 'Active',
+    isDeleted: false,
     isNewArrival: true,
     isSpecialDeal: false,
   },
@@ -95,6 +95,7 @@ export const products = [
     image: 'https://images.unsplash.com/photo-1621135802920-133df287f89c?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
+    isDeleted: false,
     isNewArrival: false,
     isSpecialDeal: true,
   },
@@ -111,6 +112,7 @@ export const products = [
     badge: 'Limited',
     naturalRatio: 0.75,
     status: 'Active',
+    isDeleted: false,
     isNewArrival: false,
     isSpecialDeal: false,
   },
@@ -129,6 +131,7 @@ export const products = [
     badge: 'Popular',
     naturalRatio: 0.75,
     status: 'Active',
+    isDeleted: false,
     isNewArrival: false,
     isSpecialDeal: true,
   },
@@ -144,6 +147,7 @@ export const products = [
     image: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
+    isDeleted: false,
     isNewArrival: true,
     isSpecialDeal: false,
   },
@@ -160,6 +164,7 @@ export const products = [
     badge: 'Staff Pick',
     naturalRatio: 0.75,
     status: 'Active',
+    isDeleted: false,
     isNewArrival: true,
     isSpecialDeal: false,
   },
@@ -175,6 +180,7 @@ export const products = [
     image: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
+    isDeleted: false,
     isNewArrival: false,
     isSpecialDeal: false,
   },
@@ -192,6 +198,7 @@ export const products = [
     image: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
+    isDeleted: false,
     isNewArrival: true,
     isSpecialDeal: false,
   },
@@ -207,6 +214,7 @@ export const products = [
     image: 'https://images.unsplash.com/photo-1557682250-33bd709cbe85?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
+    isDeleted: false,
     isNewArrival: false,
     isSpecialDeal: true,
   },
@@ -222,6 +230,7 @@ export const products = [
     image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
+    isDeleted: false,
     isNewArrival: false,
     isSpecialDeal: false,
   },
@@ -238,6 +247,7 @@ export const products = [
     badge: 'New',
     naturalRatio: 0.67,
     status: 'Active',
+    isDeleted: false,
     isNewArrival: true,
     isSpecialDeal: false,
   },
@@ -253,6 +263,7 @@ export const products = [
     image: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
+    isDeleted: false,
     isNewArrival: false,
     isSpecialDeal: true,
   },
@@ -270,6 +281,7 @@ export const products = [
     image: 'https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
+    isDeleted: false,
     isNewArrival: true,
     isSpecialDeal: false,
   },
@@ -285,6 +297,7 @@ export const products = [
     image: 'https://images.unsplash.com/photo-1621135802920-133df287f89c?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
+    isDeleted: false,
     isNewArrival: false,
     isSpecialDeal: true,
   },
@@ -302,6 +315,7 @@ export const products = [
     image: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
+    isDeleted: false,
     isNewArrival: true,
     isSpecialDeal: false,
   },
@@ -318,6 +332,7 @@ export const products = [
     badge: 'New',
     naturalRatio: 0.75,
     status: 'Active',
+    isDeleted: false,
     isNewArrival: true,
     isSpecialDeal: false,
   },
@@ -335,6 +350,7 @@ export const products = [
     image: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
+    isDeleted: false,
     isNewArrival: true,
     isSpecialDeal: false,
   },
@@ -352,31 +368,22 @@ export const products = [
     image: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=600&h=800&fit=crop',
     naturalRatio: 0.75,
     status: 'Active',
+    isDeleted: false,
     isNewArrival: false,
     isSpecialDeal: true,
   },
 ];
 
-export const getProductById = (id) => {
-  const numId = Number(id);
-  if (getDeletedProductIds().includes(numId)) return undefined;
-  return products.find((p) => p.id === numId);
-};
+export const getProductById = (id) => products.find((p) => p.id === Number(id) && !p.isDeleted);
 
-export const getActiveProducts = () => {
-  const deleted = getDeletedProductIds();
-  return products.filter((p) => p.status === 'Active' && !deleted.includes(p.id));
-};
+export const getActiveProducts = () =>
+  products.filter((p) => p.status === 'Active' && !p.isDeleted);
 
-export const getProductsByCategory = (category) => {
-  const deleted = getDeletedProductIds();
-  return products.filter((p) => p.category === category && p.status === 'Active' && !deleted.includes(p.id));
-};
+export const getProductsByCategory = (category) =>
+  products.filter((p) => p.category === category && p.status === 'Active' && !p.isDeleted);
 
-export const getProductsBySubCategory = (category, subCategory) => {
-  const deleted = getDeletedProductIds();
-  return products.filter((p) => p.category === category && p.subCategory === subCategory && p.status === 'Active' && !deleted.includes(p.id));
-};
+export const getProductsBySubCategory = (category, subCategory) =>
+  products.filter((p) => p.category === category && p.subCategory === subCategory && p.status === 'Active' && !p.isDeleted);
 
 export const getCategoryById = (id) => categories.find((c) => c.id === id);
 
@@ -403,15 +410,11 @@ export const getDiscountedSizePrice = (product, sizeId) => {
   return Math.round(basePrice * (1 - product.discountPercent / 100));
 };
 
-export const getNewArrivals = () => {
-  const deleted = getDeletedProductIds();
-  return products.filter((p) => p.status === 'Active' && p.isNewArrival && !deleted.includes(p.id));
-};
+export const getNewArrivals = () =>
+  products.filter((p) => p.status === 'Active' && p.isNewArrival && !p.isDeleted);
 
-export const getSpecialDeals = () => {
-  const deleted = getDeletedProductIds();
-  return products.filter((p) => p.status === 'Active' && p.isSpecialDeal && !deleted.includes(p.id));
-};
+export const getSpecialDeals = () =>
+  products.filter((p) => p.status === 'Active' && p.isSpecialDeal && !p.isDeleted);
 
 // Mock review data — display-only, read-only for now.
 // A real review system would need backend storage and authentication.

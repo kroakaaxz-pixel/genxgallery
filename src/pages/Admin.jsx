@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { products as initialProducts, categories, subCategories, productStatuses, frameSizes, getDiscountedPrice } from '../data/products';
-import { markProductDeleted, restoreProduct, getDeletedProductIds } from '../data/deletedProducts';
 import { initialOrders, orderStatuses, computeAnalytics } from '../data/orders';
 import { formatPrice } from '../utils/currency';
 import { supabase, setSiteStatus } from '../lib/supabase';
@@ -14,6 +13,23 @@ import {
 
 const PRODUCTS_KEY = 'gxg_admin_products';
 const ORDERS_KEY = 'gxg_admin_orders';
+
+// One-time cleanup: remove stale deleted-products key from previous code version.
+try { localStorage.removeItem('gxg_deleted_products'); } catch { /* ignore */ }
+
+function getStoredProducts() {
+  try {
+    const stored = sessionStorage.getItem(PRODUCTS_KEY);
+    if (stored) return JSON.parse(stored);
+  } catch { /* ignore */ }
+  return null;
+}
+
+function storeProducts(prods) {
+  try {
+    sessionStorage.setItem(PRODUCTS_KEY, JSON.stringify(prods));
+  } catch { /* ignore */ }
+}
 
 function getStoredOrders() {
   try {
@@ -41,6 +57,7 @@ const emptyProduct = {
   badge: '',
   naturalRatio: 0.75,
   status: 'Active',
+  isDeleted: false,
   isNewArrival: false,
   isSpecialDeal: false,
 };
@@ -52,8 +69,7 @@ export default function Admin({ onStatusChange }) {
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [signingIn, setSigningIn] = useState(false);
-  const [products, setProducts] = useState(initialProducts);
-  const [deletedIds, setDeletedIds] = useState(() => getDeletedProductIds());
+  const [products, setProducts] = useState(() => getStoredProducts() ?? initialProducts);
   const [orders, setOrders] = useState(() => getStoredOrders() ?? initialOrders);
   const [editingId, setEditingId] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -117,7 +133,8 @@ export default function Admin({ onStatusChange }) {
   const [editingOrder, setEditingOrder] = useState(null);
   const [orderEditForm, setOrderEditForm] = useState(null);
 
-  // Persist orders to session storage
+  // Persist to session storage
+  useEffect(() => { storeProducts(products); }, [products]);
   useEffect(() => { storeOrders(orders); }, [orders]);
 
   const analytics = computeAnalytics(orders);
@@ -194,15 +211,13 @@ export default function Admin({ onStatusChange }) {
 
   const handleDelete = (id) => {
     if (window.confirm('Delete this product?')) {
-      markProductDeleted(id);
-      setDeletedIds(getDeletedProductIds());
+      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, isDeleted: true } : p)));
       if (editingId === id) handleCancel();
     }
   };
 
   const handleRestore = (id) => {
-    restoreProduct(id);
-    setDeletedIds(getDeletedProductIds());
+    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, isDeleted: false } : p)));
   };
 
   const handleStatusToggle = (id, newStatus) => {
@@ -355,10 +370,10 @@ export default function Admin({ onStatusChange }) {
   }
 
   const filteredProducts = filterStatus === 'deleted'
-    ? products.filter((p) => deletedIds.includes(p.id))
+    ? products.filter((p) => p.isDeleted)
     : filterStatus === 'all'
-      ? products.filter((p) => !deletedIds.includes(p.id))
-      : products.filter((p) => p.status === filterStatus && !deletedIds.includes(p.id));
+      ? products.filter((p) => !p.isDeleted)
+      : products.filter((p) => p.status === filterStatus && !p.isDeleted);
 
   const filteredOrders = orderFilter === 'all'
     ? orders
@@ -386,7 +401,7 @@ export default function Admin({ onStatusChange }) {
             onClick={() => setActiveTab('products')}
             className={`${styles.tab} ${activeTab === 'products' ? styles.tabActive : ''}`}
           >
-            Products ({products.filter((p) => !deletedIds.includes(p.id)).length})
+            Products ({products.filter((p) => !p.isDeleted).length})
           </button>
           <button
             onClick={() => setActiveTab('orders')}
@@ -423,10 +438,10 @@ export default function Admin({ onStatusChange }) {
                   {status === 'all' ? 'All' : status === 'deleted' ? 'Deleted' : status}
                   <span className={styles.filterCount}>
                     {status === 'all'
-                      ? products.filter((p) => !deletedIds.includes(p.id)).length
+                      ? products.filter((p) => !p.isDeleted).length
                       : status === 'deleted'
-                        ? deletedIds.length
-                        : products.filter((p) => p.status === status && !deletedIds.includes(p.id)).length}
+                        ? products.filter((p) => p.isDeleted).length
+                        : products.filter((p) => p.status === status && !p.isDeleted).length}
                   </span>
                 </button>
               ))}
@@ -524,11 +539,11 @@ export default function Admin({ onStatusChange }) {
                 </thead>
                 <tbody>
                   {filteredProducts.map((product) => (
-                    <tr key={product.id} className={`${styles.row} ${deletedIds.includes(product.id) ? styles.rowDeleted : ''}`}>
+                    <tr key={product.id} className={`${styles.row} ${product.isDeleted ? styles.rowDeleted : ''}`}>
                       <td><img src={product.image} alt={product.name} className={styles.tableImage} /></td>
                       <td className={styles.cellName}>
                         {product.name}
-                        {deletedIds.includes(product.id) && <span className={styles.tableBadge} style={{ backgroundColor: '#999', marginLeft: '6px' }}>Deleted</span>}
+                        {product.isDeleted && <span className={styles.tableBadge} style={{ backgroundColor: '#999', marginLeft: '6px' }}>Deleted</span>}
                         {product.badge && <span className={styles.tableBadge}>{product.badge}</span>}
                         {product.isNewArrival && <span className={styles.tableTagNew}>New Arrival</span>}
                         {product.isSpecialDeal && <span className={styles.tableTagDeal}>Special Deal</span>}
@@ -552,13 +567,13 @@ export default function Admin({ onStatusChange }) {
                           value={product.status}
                           onChange={(e) => handleStatusToggle(product.id, e.target.value)}
                           className={`${styles.statusSelect} ${styles[`status${product.status.replace(/\s/g, '')}`]}`}
-                          disabled={deletedIds.includes(product.id)}
+                          disabled={product.isDeleted}
                         >
                           {productStatuses.map((s) => (<option key={s} value={s}>{s}</option>))}
                         </select>
                       </td>
                       <td className={styles.cellActions}>
-                        {deletedIds.includes(product.id) ? (
+                        {product.isDeleted ? (
                           <button onClick={() => handleRestore(product.id)} className={styles.editBtn}>Restore</button>
                         ) : (
                           <>
