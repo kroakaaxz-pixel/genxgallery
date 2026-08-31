@@ -1,14 +1,11 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { products, frameSizes, frameMaterials, textures, getSizePrice } from '../data/products';
+import { frameSizes, frameMaterials, textures, getSizePrice } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { uploadImage } from '../hooks/uploadImage';
 import { formatPrice } from '../utils/currency';
 import { useHead } from '../hooks/useHead';
 import styles from './Customize.module.css';
-
-// Only framed-posters products are available for customization
-const framedProducts = products.filter((p) => p.category === 'framed-posters' && p.status === 'Active');
 
 function getCoverFit(sourceW, sourceH, frameW, frameH) {
   const srcRatio = sourceW / sourceH;
@@ -28,8 +25,6 @@ export default function Customize() {
   const fileInputRef = useRef(null);
   useHead({ title: 'Custom Frame', description: 'Design your own custom frame at Gen X Gallery. Choose your print, frame material, size, and finish.' });
 
-  const [source, setSource] = useState('browse');
-  const [selectedDesign, setSelectedDesign] = useState(products[0]);
   const [customImage, setCustomImage] = useState(null);
   const [uploadedNatural, setUploadedNatural] = useState(null);
   const [selectedSize, setSelectedSize] = useState('a4');
@@ -37,16 +32,11 @@ export default function Customize() {
   const [selectedTexture, setSelectedTexture] = useState('matte');
   const [uploadError, setUploadError] = useState(null);
 
-  const previewImage = source === 'upload' && customImage
-    ? customImage
-    : selectedDesign?.image;
+  const previewImage = customImage;
 
   const sourceRatio = (() => {
-    if (source === 'upload' && uploadedNatural) {
+    if (uploadedNatural) {
       return uploadedNatural.w / uploadedNatural.h;
-    }
-    if (selectedDesign?.naturalRatio) {
-      return selectedDesign.naturalRatio;
     }
     return 0.75;
   })();
@@ -69,6 +59,25 @@ export default function Customize() {
     }
   }, []);
 
+  const handleDrop = useCallback(async (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+
+    setUploadError(null);
+    try {
+      const { dataUrl, width, height } = await uploadImage(file);
+      setCustomImage(dataUrl);
+      setUploadedNatural({ w: width, h: height });
+    } catch (err) {
+      setUploadError(err.message);
+    }
+  }, []);
+
+  const handleDragOver = useCallback((e) => {
+    e.preventDefault();
+  }, []);
+
   const handleAddToCart = () => {
     const size = frameSizes.find((s) => s.id === selectedSize);
     const material = frameMaterials.find((m) => m.id === selectedMaterial);
@@ -77,7 +86,7 @@ export default function Customize() {
     addItem(
       {
         id: 'custom',
-        name: source === 'upload' ? 'Custom Upload' : selectedDesign.name,
+        name: 'Custom Upload',
         category: 'custom',
         price: totalPrice,
       },
@@ -90,12 +99,11 @@ export default function Customize() {
         texture: selectedTexture,
         textureName: texture?.name,
         textureFee,
-        customImage: source === 'upload',
+        customImage: true,
       }
     );
   };
 
-  // Memoize frame dimensions — only recalculates when selectedSize changes
   const frameDims = useMemo(() => {
     const size = frameSizes.find((s) => s.id === selectedSize);
     if (!size) return { width: 200, height: 280, scale: 0.7 };
@@ -118,8 +126,6 @@ export default function Customize() {
 
   const material = frameMaterials.find((m) => m.id === selectedMaterial);
 
-  // Memoize material styles — only recalculates when selectedMaterial changes
-  // Width/height are constant (always A4); only transform scale changes per size
   const materialStyles = useMemo(() => {
     const base = {
       width: frameDims.width + 32,
@@ -149,7 +155,6 @@ export default function Customize() {
     }
   }, [selectedMaterial, frameDims.width, frameDims.height, material]);
 
-  // Only the transform changes on size selection — this is the animated property
   const frameStyle = useMemo(() => ({
     ...materialStyles,
     transform: `scale(${frameDims.scale})`,
@@ -224,64 +229,34 @@ export default function Customize() {
 
           {/* Options */}
           <div className={styles.optionsSection}>
-            {/* Source */}
+            {/* Upload */}
             <div className={styles.optionGroup}>
-              <p className={styles.optionLabel}>Image Source</p>
-              <div className={styles.sourceTabs}>
-                <button
-                  className={`${styles.sourceTab} ${source === 'browse' ? styles.sourceTabActive : ''}`}
-                  onClick={() => setSource('browse')}
-                >
-                  Browse Designs
-                </button>
-                <button
-                  className={`${styles.sourceTab} ${source === 'upload' ? styles.sourceTabActive : ''}`}
-                  onClick={() => setSource('upload')}
-                >
-                  Upload Photo
-                </button>
+              <p className={styles.optionLabel}>Upload Your Photo</p>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+              />
+              <div
+                className={styles.uploadArea}
+                onClick={() => fileInputRef.current?.click()}
+                onDrop={handleDrop}
+                onDragOver={handleDragOver}
+              >
+                <svg className={styles.uploadAreaIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                <p className={styles.uploadAreaText}>
+                  {customImage ? 'Change photo' : 'Drop a photo or click to browse'}
+                </p>
+                <p className={styles.uploadAreaHint}>JPG, PNG, WebP — up to 10MB</p>
               </div>
-
-              {source === 'browse' ? (
-                <div className={styles.designGrid}>
-                  {framedProducts.map((product) => (
-                    <button
-                      key={product.id}
-                      className={`${styles.designOption} ${selectedDesign?.id === product.id ? styles.designOptionActive : ''}`}
-                      onClick={() => setSelectedDesign(product)}
-                    >
-                      <img src={product.image} alt={product.name} loading="lazy" />
-                      <span className={styles.designOptionName}>{product.name}</span>
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    style={{ display: 'none' }}
-                  />
-                  <div
-                    className={styles.uploadArea}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <svg className={styles.uploadAreaIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
-                      <polyline points="17 8 12 3 7 8" />
-                      <line x1="12" y1="3" x2="12" y2="15" />
-                    </svg>
-                    <p className={styles.uploadAreaText}>
-                      {customImage ? 'Change photo' : 'Drop a photo or click to browse'}
-                    </p>
-                    <p className={styles.uploadAreaHint}>JPG, PNG, WebP — up to 10MB</p>
-                  </div>
-                  {uploadError && (
-                    <p className={styles.uploadError}>{uploadError}</p>
-                  )}
-                </div>
+              {uploadError && (
+                <p className={styles.uploadError}>{uploadError}</p>
               )}
             </div>
 
