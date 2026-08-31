@@ -114,13 +114,18 @@ export default function Admin({ onStatusChange }) {
   const [viewingOrder, setViewingOrder] = useState(null);
   const [editingOrder, setEditingOrder] = useState(null);
   const [orderEditForm, setOrderEditForm] = useState(null);
+  const [tableMissing, setTableMissing] = useState(false);
 
   // Load products from Supabase on mount
   useEffect(() => {
     if (!supabase) return;
     fetchAllProducts()
       .then((data) => { if (data) setProducts(data); })
-      .catch(() => {});
+      .catch((err) => {
+        if (err?.code === 'PGRST205' || err?.message?.includes('Could not find the table')) {
+          setTableMissing(true);
+        }
+      });
   }, []);
 
   // Persist orders to session storage
@@ -215,7 +220,11 @@ export default function Admin({ onStatusChange }) {
       if (editingId === id) handleCancel();
     } catch (err) {
       console.error('Failed to delete product:', err);
-      alert('Failed to delete product. Please try again.');
+      if (err?.code === 'PGRST205' || err?.message?.includes('Could not find the table')) {
+        setTableMissing(true);
+      } else {
+        alert('Failed to delete product. Please try again.');
+      }
     }
   };
 
@@ -411,6 +420,35 @@ export default function Admin({ onStatusChange }) {
         </div>
 
         {/* Tab bar */}
+
+        {/* Setup banner when products table is missing */}
+        {tableMissing && (
+          <div style={{
+            background: '#fff3cd',
+            border: '1px solid #ffc107',
+            borderRadius: '6px',
+            padding: '16px 20px',
+            marginBottom: '20px',
+            fontSize: '0.9rem',
+            lineHeight: '1.6',
+          }}>
+            <strong style={{ color: '#856404' }}>Products table not found in Supabase.</strong>
+            <p style={{ margin: '8px 0 0', color: '#856404' }}>
+              The <code>products</code> table hasn't been created yet. To fix this:
+            </p>
+            <ol style={{ margin: '8px 0 0', paddingLeft: '20px', color: '#856404' }}>
+              <li>Go to your <a href="https://supabase.com/dashboard" target="_blank" rel="noopener noreferrer" style={{ color: '#856404', fontWeight: 600 }}>Supabase Dashboard</a></li>
+              <li>Select your project (<code>nsjioaoelzindqwzvqdg</code>)</li>
+              <li>Go to <strong>SQL Editor</strong> in the left sidebar</li>
+              <li>Paste the contents of <code>supabase/products-schema.sql</code> and click <strong>Run</strong></li>
+              <li>Refresh this page</li>
+            </ol>
+            <p style={{ margin: '8px 0 0', color: '#856404', fontSize: '0.85rem' }}>
+              The SQL file creates the products table, seeds all 19 products, and sets up RLS policies.
+            </p>
+          </div>
+        )}
+
         <div className={styles.tabBar}>
           <button
             onClick={() => setActiveTab('products')}
