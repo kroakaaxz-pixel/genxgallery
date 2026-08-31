@@ -127,8 +127,12 @@ CREATE POLICY "Anyone can insert orders"
   ON orders FOR INSERT
   WITH CHECK (user_id IS NULL OR auth.uid() = user_id);
 
--- Note: no UPDATE/DELETE policy on orders, so clients cannot modify or remove
--- them. Keep it that way.
+-- Note: no UPDATE/DELETE policy on orders by default — anon/client keys
+-- cannot modify order status or delete orders. The only server-side code
+-- that updates orders is api/razorpay-verify.js which uses the
+-- SUPABASE_SERVICE_ROLE_KEY to bypass RLS. Keep it this way; do not add
+-- an UPDATE policy that would allow the anon key to set status='paid'
+-- directly from the browser.
 
 -- ============================================================
 -- Done! After running this, enable Google Sign-In in:

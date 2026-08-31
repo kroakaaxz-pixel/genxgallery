@@ -203,54 +203,37 @@ export default function Cart() {
       // @ts-ignore — Razorpay global injected by CDN
       window.Razorpay = window.Razorpay || require('razorpay');
 
-      // Handler called when user completes/cancels payment
-      const handleRazorpayResponse = async (response) => {
-        // response contains razorpay_payment_id and razorpay_signature
-        // Verify the payment signature server-side
-        const verifyRes = await fetch('/api/razorpay/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            razorpay_order_id: razorData.id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature,
-          }),
-        });
-        const verifyData = await verifyRes.json();
+// Handler called when user completes/cancels payment
+       const handleRazorpayResponse = async (response) => {
+         // response contains razorpay_payment_id and razorpay_signature
+         // Verify the payment signature server-side
+         const verifyRes = await fetch('/api/razorpay/verify', {
+           method: 'POST',
+           headers: { 'Content-Type': 'application/json' },
+           body: JSON.stringify({
+             razorpay_order_id: razorData.id,
+             razorpay_payment_id: response.razorpay_payment_id,
+             razorpay_signature: response.razorpay_signature,
+           }),
+         });
+         const verifyData = await verifyRes.json();
 
-        if (verifyData.valid) {
-          // Payment verified — update order status to 'paid' in Supabase
-          try {
-            await supabase?.from('orders').update({ status: 'paid', razorpay_order_id: razorData.id, razorpay_payment_id: response.razorpay_payment_id }).eq('id', id);
-            // Send confirmation email (best-effort, non-blocking)
-            const emailRes = await fetch('/api/send-order-confirmation', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                email: email.trim(),
-                name: name.trim(),
-                items,
-                totalPrice,
-                orderId: id,
-              }),
-            });
-            const emailData = await emailRes.json();
-            if (!emailData.sent) {
-              console.warn('Order confirmation email was not sent:', emailData.reason);
-            }
-            clearCart();
-            setOrderPlaced(true);
-            setOrderId(id);
-          } catch (supaErr) {
-            console.error('Supabase update failed after payment verify:', supaErr);
-            // Payment was valid but we couldn't update DB — show alert
-            alert('Payment successful, but we could not update your order. Please contact support with order ID: ' + id);
-          }
-        } else {
-          // Signature invalid — do not mark as paid
-          setCheckoutError('Payment verification failed. The payment may have been declined. Please try again.');
-        }
-      };
+         if (verifyData.valid) {
+           // Payment verified server-side — api/razorpay-verify.js already
+           // updated the order status to 'paid' using the service-role key.
+           // No need to update Supabase from the client.
+           // Show the order-placed screen with the generated order ID.
+           clearCart();
+           setOrderPlaced(true);
+           setOrderId(id);
+         } else if (!verifyData.valid || verifyData.error) {
+           // Signature invalid — do not mark as paid
+           setCheckoutError('Payment verification failed. The payment may have been declined. Please try again.');
+         } else {
+           // verifyRes failed or non-200 — show error
+           setCheckoutError('Could not verify payment. Please try again later.');
+         }
+       };
 
       const rzp = new (window.Razorpay || {})({
         key: process.env.RAZORPAY_KEY_ID,
