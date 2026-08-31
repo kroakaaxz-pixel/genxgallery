@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getAddresses, addAddress, insertOrder } from '../lib/supabase';
 import { formatPrice, gstBreakdown } from '../utils/currency';
@@ -61,6 +60,24 @@ function FormField({ label, required, error, children }) {
   );
 }
 
+// Razorpay CDN script loader — only loads once per page
+let razorpayScriptLoaded = false;
+export function ensureRazorpayScript() {
+  if (razorpayScriptLoaded) return;
+  razorpayScriptLoaded = true;
+  const script = document.createElement('script');
+  script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+  script.async = true;
+  script.onload = () => {
+    // Razorpay global becomes available as Razorpay
+    console.log('Razorpay CDN script loaded');
+  };
+  script.onerror = (err) => {
+    console.error('Razorpay CDN script failed to load:', err);
+  };
+  document.body.appendChild(script);
+}
+
 export default function Cart() {
   const { items, removeItem, updateQuantity, totalPrice, clearCart } = useCart();
   const { user } = useAuth();
@@ -84,6 +101,7 @@ export default function Cart() {
   const [sending, setSending] = useState(false);
   const [checkoutError, setCheckoutError] = useState('');
   const [errors, setErrors] = useState({});
+  const [razorpayReady, setRazorpayReady] = useState(false);
 
   // Pre-fill from default saved address when logged in
   useEffect(() => {
@@ -103,6 +121,12 @@ export default function Cart() {
       }
     });
   }, [user]);
+
+  useEffect(() => {
+    // Ensure Razorpay CDN script is loaded once
+    ensureRazorpayScript();
+    setRazorpayReady(true);
+  }, []);
 
   const validate = () => {
     const e = {};
@@ -132,16 +156,13 @@ export default function Cart() {
 
   const handleCheckout = async () => {
     if (!validate() || sending) return;
-
     setSending(true);
     setCheckoutError('');
+
     const id = `GXG-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
     const address = buildAddress();
 
-    // 1. Persist the order. This must succeed — if it does not, the order does
-    //    not exist, so do not tell the customer it was placed and do not clear
-    //    their cart. Full detail goes to the console; the customer sees a
-    //    generic message.
+    // 1. Persist the order to Supabase (status: 'placed')
     try {
       const orderItems = items.map((item) => ({
         name: item.product?.name || item.name,
@@ -160,66 +181,104 @@ export default function Cart() {
         status: 'placed',
       });
     } catch (err) {
-      // Log the message/code only — a Postgres constraint violation can echo
-      // the submitted row (email, address, phone) in its detail/hint fields.
-      console.error(
-        `Checkout failed — order was not recorded. ${err?.code ? `[${err.code}] ` : ''}${err?.message || 'Unknown error'}`
-      );
-      setCheckoutError(
-        'We could not place your order just now. Nothing has been charged — please try again in a moment.'
-      );
+      console.error('Order insert failed:', err);
+      setCheckoutError('We could not place your order just now. Please try again in a moment.');
       setSending(false);
       return;
     }
 
-    setOrderId(id);
-
-    // 2. Save address if checkbox is checked. Best-effort: a failure here does
-    //    not invalidate the order, so it must not block the confirmation.
-    if (user && saveAddress) {
-      try {
-        await addAddress(user.id, {
-          house_no: address.houseNo,
-          street: address.street,
-          landmark: address.landmark,
-          city: address.city,
-          state: address.state,
-          pincode: address.pincode,
-          phone: address.phone,
-          is_default: false,
-        });
-      } catch {
-        // Deliberately not logging the error object: a Postgres constraint
-        // violation can echo the submitted address back in its detail fields.
-        console.warn('Could not save the address to the account.');
-      }
-    }
-
-    // 3. Send confirmation email (non-blocking, best-effort)
+    // 2. Create a Razorpay order (server-side, uses Key Secret)
     try {
-      const res = await fetch('/api/send-order-confirmation', {
+      const razorRes = await fetch('/api/razorpay/create-order', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: email.trim(),
-          name: name.trim(),
-          items,
-          totalPrice,
-          orderId: id,
-          shippingAddress: address,
-        }),
+        body: JSON.stringify({ amount: totalPrice }),
       });
-      const data = await res.json();
-      if (!data.sent) {
-        console.warn('Order confirmation email was not sent:', data.reason);
+      const razorData = await razorRes.json();
+      if (!razorData.id) {
+        throw new Error('Razorpay order creation failed');
       }
-    } catch {
-      console.warn('Order confirmation email request failed.');
-    }
 
-    clearCart();
-    setOrderPlaced(true);
-    setSending(false);
+      // 3. Open Razorpay Checkout modal
+      // @ts-ignore — Razorpay global injected by CDN
+      window.Razorpay = window.Razorpay || require('razorpay');
+
+      // Handler called when user completes/cancels payment
+      const handleRazorpayResponse = async (response) => {
+        // response contains razorpay_payment_id and razorpay_signature
+        // Verify the payment signature server-side
+        const verifyRes = await fetch('/api/razorpay/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            razorpay_order_id: razorData.id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+          }),
+        });
+        const verifyData = await verifyRes.json();
+
+        if (verifyData.valid) {
+          // Payment verified — update order status to 'paid' in Supabase
+          try {
+            await supabase?.from('orders').update({ status: 'paid', razorpay_order_id: razorData.id, razorpay_payment_id: response.razorpay_payment_id }).eq('id', id);
+            // Send confirmation email (best-effort, non-blocking)
+            const emailRes = await fetch('/api/send-order-confirmation', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email: email.trim(),
+                name: name.trim(),
+                items,
+                totalPrice,
+                orderId: id,
+              }),
+            });
+            const emailData = await emailRes.json();
+            if (!emailData.sent) {
+              console.warn('Order confirmation email was not sent:', emailData.reason);
+            }
+            clearCart();
+            setOrderPlaced(true);
+            setOrderId(id);
+          } catch (supaErr) {
+            console.error('Supabase update failed after payment verify:', supaErr);
+            // Payment was valid but we couldn't update DB — show alert
+            alert('Payment successful, but we could not update your order. Please contact support with order ID: ' + id);
+          }
+        } else {
+          // Signature invalid — do not mark as paid
+          setCheckoutError('Payment verification failed. The payment may have been declined. Please try again.');
+        }
+      };
+
+      const rzp = new (window.Razorpay || {})({
+        key: process.env.RAZORPAY_KEY_ID,
+        amount: razorData.amount,
+        currency: razorData.currency,
+        name: 'Gen X Gallery',
+        description: 'Custom Frame Order',
+        order_id: razorData.id,
+        handler: handleRazorpayResponse,
+        prefill: { name, email, contact: phone },
+        theme: { color: '#C23B22' },
+        modal: {
+          ondismiss: () => {
+            // User closed the modal without paying
+            setCheckoutError('Payment was cancelled. Your order has not been placed.');
+
+            // Do NOT update order status — keep it as 'placed' so it can be retryed
+          },
+        },
+      });
+
+      rzp.open();
+    } catch (razorpayErr) {
+      console.error('Razorpay checkout failed:', razorpayErr);
+      setCheckoutError('Could not start Razorpay checkout. Please try again later.');
+    } finally {
+      setSending(false);
+    }
   };
 
   if (orderPlaced) {
@@ -398,38 +457,34 @@ export default function Cart() {
                   Save this address for future orders
                 </label>
               )}
-            </div>
 
-            <button
-              className={styles.checkoutBtn}
-              onClick={handleCheckout}
-              disabled={sending}
-              style={{ opacity: sending ? 0.6 : 1, cursor: sending ? 'not-allowed' : 'pointer' }}
-            >
-              {sending ? 'Placing Order…' : 'Place Order'}
-            </button>
-            {checkoutError && (
-              <p
-                role="alert"
-                style={{
-                  fontSize: '0.85rem',
-                  color: 'var(--color-accent)',
-                  textAlign: 'center',
-                  marginTop: '10px',
-                }}
-              >
-                {checkoutError}
-              </p>
-            )}
-            <p style={{ fontSize: '0.8rem', color: 'var(--color-ink-muted)', textAlign: 'center', marginTop: '12px' }}>
-              Free shipping on orders above ₹999 · <Link to="/returns" style={{ color: 'var(--color-accent-text)' }}>Free returns within 7 days</Link>
-            </p>
+              {/* Razorpay payment section — shown only when Razorpay is ready */}
+              {razorpayReady && !orderPlaced && (
+                <div style={{ marginTop: '24px', padding: '16px', background: 'var(--color-cream-dark)', borderRadius: '2px' }}>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--color-ink-light)', marginBottom: '8px' }}>
+                    Pay securely via Razorpay
+                  </p>
+                  <button
+                    className={styles.checkoutBtn}
+                    onClick={handleCheckout}
+                    disabled={sending}
+                    style={{ opacity: sending ? 0.6 : 1, cursor: sending ? 'not-allowed' : 'pointer' }}
+                  >
+                    {sending ? 'Processing Payment…' : 'Place Order — Pay ₹' + totalPrice.toLocaleString('en-IN')}
+                  </button>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--color-ink-muted)', marginTop: '8px' }}>
+                    Free shipping on orders above ₹999 · <Link to="/returns" style={{ color: 'var(--color-accent-text)' }}>Free returns within 7 days</Link>
+                  </p>
+                </div>
+              )}
+            </div>
             <Link to="/catalogue" className={styles.continueLink}>
               Continue Shopping
             </Link>
           </div>
         </div>
       </div>
-    </main>
-  );
+    </div>
+  </main>
+);
 }
