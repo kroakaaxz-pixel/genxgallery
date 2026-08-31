@@ -82,6 +82,7 @@ export default function Cart() {
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderId, setOrderId] = useState(null);
   const [sending, setSending] = useState(false);
+  const [checkoutError, setCheckoutError] = useState('');
   const [errors, setErrors] = useState({});
 
   // Pre-fill from default saved address when logged in
@@ -133,11 +134,14 @@ export default function Cart() {
     if (!validate() || sending) return;
 
     setSending(true);
+    setCheckoutError('');
     const id = `GXG-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
-    setOrderId(id);
     const address = buildAddress();
 
-    // 1. Persist order to Supabase
+    // 1. Persist the order. This must succeed — if it does not, the order does
+    //    not exist, so do not tell the customer it was placed and do not clear
+    //    their cart. Full detail goes to the console; the customer sees a
+    //    generic message.
     try {
       const orderItems = items.map((item) => ({
         name: item.product?.name || item.name,
@@ -156,10 +160,22 @@ export default function Cart() {
         status: 'placed',
       });
     } catch (err) {
-      console.warn('Failed to persist order:', err);
+      // Log the message/code only — a Postgres constraint violation can echo
+      // the submitted row (email, address, phone) in its detail/hint fields.
+      console.error(
+        `Checkout failed — order was not recorded. ${err?.code ? `[${err.code}] ` : ''}${err?.message || 'Unknown error'}`
+      );
+      setCheckoutError(
+        'We could not place your order just now. Nothing has been charged — please try again in a moment.'
+      );
+      setSending(false);
+      return;
     }
 
-    // 2. Save address if checkbox is checked
+    setOrderId(id);
+
+    // 2. Save address if checkbox is checked. Best-effort: a failure here does
+    //    not invalidate the order, so it must not block the confirmation.
     if (user && saveAddress) {
       try {
         await addAddress(user.id, {
@@ -172,12 +188,14 @@ export default function Cart() {
           phone: address.phone,
           is_default: false,
         });
-      } catch (err) {
-        console.warn('Failed to save address:', err);
+      } catch {
+        // Deliberately not logging the error object: a Postgres constraint
+        // violation can echo the submitted address back in its detail fields.
+        console.warn('Could not save the address to the account.');
       }
     }
 
-    // 3. Send confirmation email (non-blocking)
+    // 3. Send confirmation email (non-blocking, best-effort)
     try {
       const res = await fetch('/api/send-order-confirmation', {
         method: 'POST',
@@ -195,8 +213,8 @@ export default function Cart() {
       if (!data.sent) {
         console.warn('Order confirmation email was not sent:', data.reason);
       }
-    } catch (err) {
-      console.warn('Failed to send order confirmation email:', err);
+    } catch {
+      console.warn('Order confirmation email request failed.');
     }
 
     clearCart();
@@ -390,6 +408,19 @@ export default function Cart() {
             >
               {sending ? 'Placing Order…' : 'Place Order'}
             </button>
+            {checkoutError && (
+              <p
+                role="alert"
+                style={{
+                  fontSize: '0.85rem',
+                  color: 'var(--color-accent)',
+                  textAlign: 'center',
+                  marginTop: '10px',
+                }}
+              >
+                {checkoutError}
+              </p>
+            )}
             <p style={{ fontSize: '0.8rem', color: 'var(--color-ink-muted)', textAlign: 'center', marginTop: '12px' }}>
               Free shipping on orders above ₹999 · <Link to="/returns" style={{ color: 'var(--color-accent-text)' }}>Free returns within 7 days</Link>
             </p>

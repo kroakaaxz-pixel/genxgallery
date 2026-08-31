@@ -88,7 +88,8 @@ CREATE POLICY "Users can view own profile"
 
 CREATE POLICY "Users can update own profile"
   ON profiles FOR UPDATE
-  USING (auth.uid() = id);
+  USING (auth.uid() = id)
+  WITH CHECK (auth.uid() = id);
 
 -- ADDRESSES: users can CRUD their own addresses
 CREATE POLICY "Users can view own addresses"
@@ -99,25 +100,40 @@ CREATE POLICY "Users can insert own addresses"
   ON addresses FOR INSERT
   WITH CHECK (auth.uid() = user_id);
 
+-- WITH CHECK matters as much as USING here: without it a user could target
+-- their own row and rewrite user_id to somebody else's UUID.
 CREATE POLICY "Users can update own addresses"
   ON addresses FOR UPDATE
-  USING (auth.uid() = user_id);
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
 
 CREATE POLICY "Users can delete own addresses"
   ON addresses FOR DELETE
   USING (auth.uid() = user_id);
 
--- ORDERS: users can read their own orders; inserts are allowed for anyone
--- (guest checkout needs to insert with user_id = null, so we allow inserts broadly)
+-- ORDERS: a signed-in user reads only their own orders.
+-- Guest orders (user_id IS NULL) are deliberately NOT readable by clients —
+-- matching on `user_id IS NULL` would expose every guest's email, address and
+-- phone to anyone holding the public anon key. Read guest orders from the
+-- dashboard or with the service-role key instead.
 CREATE POLICY "Users can view own orders"
   ON orders FOR SELECT
-  USING (auth.uid() = user_id OR user_id IS NULL);
+  USING (auth.uid() IS NOT NULL AND auth.uid() = user_id);
 
+-- Guest checkout inserts with user_id = NULL; a signed-in caller may only
+-- insert rows they own. (WITH CHECK (true) would let anyone write into another
+-- user's order history.)
 CREATE POLICY "Anyone can insert orders"
   ON orders FOR INSERT
-  WITH CHECK (true);
+  WITH CHECK (user_id IS NULL OR auth.uid() = user_id);
+
+-- Note: no UPDATE/DELETE policy on orders, so clients cannot modify or remove
+-- them. Keep it that way.
 
 -- ============================================================
 -- Done! After running this, enable Google Sign-In in:
 --   Supabase Dashboard → Authentication → Providers → Google
+--
+-- If your database predates the 2026-08-31 security audit, also run
+-- rls-fixes.sql — it corrects the policies this file used to create.
 -- ============================================================

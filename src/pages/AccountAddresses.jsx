@@ -53,6 +53,7 @@ export default function AccountAddresses() {
   const [form, setForm] = useState(emptyForm());
   const [showAdd, setShowAdd] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   useEffect(() => {
     if (!user) return;
@@ -72,6 +73,7 @@ export default function AccountAddresses() {
   const handleSave = async () => {
     if (!user || saving) return;
     setSaving(true);
+    setSaveError('');
     try {
       if (editingId) {
         await updateAddress(editingId, user.id, form);
@@ -82,8 +84,11 @@ export default function AccountAddresses() {
       setForm(emptyForm());
       setShowAdd(false);
       await refresh();
-    } catch (e) {
-      console.error('Failed to save address:', e);
+    } catch {
+      // Not logging the error object: a Postgres constraint violation can echo
+      // the submitted address back in its detail/hint fields.
+      console.error('Failed to save address.');
+      setSaveError('Could not save this address. Please try again.');
     }
     setSaving(false);
   };
@@ -120,6 +125,7 @@ export default function AccountAddresses() {
     setEditingId(null);
     setForm(emptyForm());
     setShowAdd(false);
+    setSaveError('');
   };
 
   if (loading) return null;
@@ -215,6 +221,11 @@ export default function AccountAddresses() {
                   />
                   Set as default address
                 </label>
+                {saveError && (
+                  <p role="alert" style={{ fontSize: '0.8rem', color: 'var(--color-accent)', marginTop: '8px' }}>
+                    {saveError}
+                  </p>
+                )}
                 <div className={styles.formActions}>
                   <button className={styles.saveBtn} onClick={handleSave} disabled={saving}>
                     {saving ? 'Saving…' : editingId ? 'Update Address' : 'Save Address'}

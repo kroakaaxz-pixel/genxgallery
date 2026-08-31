@@ -24,4 +24,8 @@ dist-ssr
 *.sw?
 
 .vercel
+
+# Never commit real env values. .env.example is the documented template of
+# variable NAMES with placeholder values only, so it is explicitly re-included.
 .env*
+!.env.example

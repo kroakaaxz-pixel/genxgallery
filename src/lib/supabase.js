@@ -3,9 +3,29 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+// Fail loudly at load time. Previously a missing env var produced a silent
+// null client: sign-in did nothing, order history came back empty, and orders
+// were dropped on the floor with no indication anything was wrong.
+const missingEnv = [
+  !supabaseUrl && 'VITE_SUPABASE_URL',
+  !supabaseAnonKey && 'VITE_SUPABASE_ANON_KEY',
+].filter(Boolean);
+
+if (missingEnv.length > 0) {
+  console.error(
+    `[Gen X Gallery] Supabase is not configured — missing ${missingEnv.join(' and ')}. ` +
+      'Sign-in, saved addresses, order history and order recording are all disabled. ' +
+      'Set these in .env.local for local development, or in the Vercel project ' +
+      'environment variables for a deployment, then rebuild. See .env.example.'
+  );
+}
+
 export const supabase = (supabaseUrl && supabaseAnonKey)
   ? createClient(supabaseUrl, supabaseAnonKey)
   : null;
+
+/** True when both public Supabase env vars are present. */
+export const isSupabaseConfigured = supabase !== null;
 
 // ── Auth helpers ──────────────────────────────────────────────
 
@@ -114,17 +134,17 @@ export async function deleteAddress(addressId, userId) {
 // ── Order helpers ─────────────────────────────────────────────
 
 export async function insertOrder(order) {
-  if (!supabase) return null;
-  const { data, error } = await supabase
-    .from('orders')
-    .insert(order)
-    .select()
-    .single();
-  if (error) {
-    console.warn('Failed to insert order into Supabase:', error.message);
-    return null;
+  if (!supabase) {
+    // Loud, not silent: the caller must be able to tell the customer that the
+    // order was not recorded rather than showing a false confirmation.
+    throw new Error('Supabase not configured');
   }
-  return data;
+  // No .select() here on purpose. Guest orders (user_id IS NULL) are not
+  // readable under the orders SELECT policy, so asking for the inserted row
+  // back would fail RLS and break guest checkout. The caller already knows the
+  // order id it generated.
+  const { error } = await supabase.from('orders').insert(order);
+  if (error) throw error;
 }
 
 export async function getUserOrders(userId) {

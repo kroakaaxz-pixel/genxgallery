@@ -2,18 +2,38 @@ import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
+/**
+ * Escape a value for interpolation into the email HTML.
+ *
+ * Every field below originates from the request body, so it is untrusted:
+ * without this, a name or product option containing markup would be injected
+ * into an email sent from our own verified domain.
+ */
+function esc(value) {
+  if (value === null || value === undefined) return '';
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function formatAddress(addr) {
   if (!addr) return null;
   // Handle both structured object and legacy string
-  if (typeof addr === 'string') return addr;
+  if (typeof addr === 'string') return esc(addr);
   const lines = [];
-  if (addr.houseNo) lines.push(addr.houseNo);
-  if (addr.street) lines.push(addr.street);
-  if (addr.landmark) lines.push(`Landmark: ${addr.landmark}`);
+  if (addr.houseNo) lines.push(esc(addr.houseNo));
+  if (addr.street) lines.push(esc(addr.street));
+  if (addr.landmark) lines.push(`Landmark: ${esc(addr.landmark)}`);
   if (addr.city || addr.state || addr.pincode) {
-    lines.push([addr.city, addr.state].filter(Boolean).join(', ') + (addr.pincode ? ` - ${addr.pincode}` : ''));
+    lines.push(
+      [addr.city, addr.state].filter(Boolean).map(esc).join(', ') +
+        (addr.pincode ? ` - ${esc(addr.pincode)}` : '')
+    );
   }
-  if (addr.phone) lines.push(`Phone: ${addr.phone}`);
+  if (addr.phone) lines.push(`Phone: ${esc(addr.phone)}`);
   return lines.join('<br/>');
 }
 
@@ -43,8 +63,8 @@ function buildOrderEmail({ orderId, customerName, items, totalPrice, shippingAdd
       (item) => `
       <tr>
         <td style="padding:12px 0;border-bottom:1px solid #E0DCD6;font-family:Inter,sans-serif;font-size:14px;color:#3D3D3D;">
-          ${item.name}
-          ${item.options ? `<br/><span style="font-size:12px;color:#6B6B6B;">${item.options}</span>` : ''}
+          ${esc(item.name)}
+          ${item.options ? `<br/><span style="font-size:12px;color:#6B6B6B;">${esc(item.options)}</span>` : ''}
         </td>
         <td style="padding:12px 0;border-bottom:1px solid #E0DCD6;font-family:Inter,sans-serif;font-size:14px;color:#3D3D3D;text-align:center;">
           ${item.quantity}
@@ -108,7 +128,7 @@ function buildOrderEmail({ orderId, customerName, items, totalPrice, shippingAdd
                 <tr>
                   <td style="padding:0 0 24px 0;">
                     <h1 style="margin:0;font-family:Georgia,'Times New Roman',serif;font-size:32px;font-weight:600;color:#1A1A1A;letter-spacing:-0.5px;">
-                      Thank you, ${customerName || 'there'}.
+                      Thank you, ${esc(customerName) || 'there'}.
                     </h1>
                   </td>
                 </tr>
@@ -130,7 +150,7 @@ function buildOrderEmail({ orderId, customerName, items, totalPrice, shippingAdd
                       Order ID
                     </p>
                     <p style="margin:4px 0 0 0;font-size:14px;font-weight:600;color:#1A1A1A;font-family:monospace;">
-                      ${orderId}
+                      ${esc(orderId)}
                     </p>
                   </td>
                   <td style="width:16px;"></td>
@@ -242,6 +262,20 @@ function buildOrderEmail({ orderId, customerName, items, totalPrice, shippingAdd
 </html>`;
 }
 
+/**
+ * KNOWN ABUSE VECTOR — flagged in the 2026-08-31 security audit, not yet fixed.
+ *
+ * This endpoint is unauthenticated, unthrottled, and takes the recipient
+ * address plus the entire email body content (names, item labels, address)
+ * from the request. Anyone who finds it can send arbitrary-content mail to
+ * arbitrary recipients from our verified Resend domain, which risks the
+ * domain's sending reputation.
+ *
+ * Recommended fix before real launch: look the order up in Supabase by
+ * `orderId` using the service-role key, send only to the email stored on that
+ * order, render the body from the stored row rather than the request body, and
+ * rate-limit per IP. User input is HTML-escaped via esc() in the meantime.
+ */
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });

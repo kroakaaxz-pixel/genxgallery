@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { products as initialProducts, categories, subCategories, productStatuses, frameSizes, getDiscountedPrice } from '../data/products';
 import { initialOrders, orderStatuses, computeAnalytics } from '../data/orders';
-import { ADMIN_PASSWORD } from '../config/admin';
 import { formatPrice } from '../utils/currency';
 import { supabase, setSiteStatus } from '../lib/supabase';
 import styles from './Admin.module.css';
@@ -12,17 +11,8 @@ import {
   AreaChart, Area,
 } from 'recharts';
 
-const STORAGE_KEY = 'gxg_admin_auth';
 const PRODUCTS_KEY = 'gxg_admin_products';
 const ORDERS_KEY = 'gxg_admin_orders';
-
-function getStoredAuth() {
-  try {
-    return sessionStorage.getItem(STORAGE_KEY) === 'true';
-  } catch {
-    return false;
-  }
-}
 
 function getStoredProducts() {
   try {
@@ -69,9 +59,12 @@ const emptyProduct = {
 };
 
 export default function Admin({ onStatusChange }) {
-  const [authenticated, setAuthenticated] = useState(getStoredAuth);
+  // 'checking' until the server confirms the session cookie, so protected
+  // content is never rendered — not even for a frame — before we know.
+  const [authState, setAuthState] = useState('checking');
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+  const [signingIn, setSigningIn] = useState(false);
   const [products, setProducts] = useState(() => getStoredProducts() ?? initialProducts);
   const [orders, setOrders] = useState(() => getStoredOrders() ?? initialOrders);
   const [editingId, setEditingId] = useState(null);
@@ -83,6 +76,23 @@ export default function Admin({ onStatusChange }) {
   // Site status state
   const [siteMode, setSiteMode] = useState('live');
   const [siteModeLoading, setSiteModeLoading] = useState(false);
+  const [siteModeError, setSiteModeError] = useState('');
+
+  const authenticated = authState === 'authed';
+
+  // Ask the server whether the httpOnly session cookie is still valid.
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/api/admin-auth', { credentials: 'same-origin' })
+      .then((res) => (res.ok ? res.json() : { authenticated: false }))
+      .then((data) => {
+        if (!cancelled) setAuthState(data?.authenticated ? 'authed' : 'anon');
+      })
+      .catch(() => {
+        if (!cancelled) setAuthState('anon');
+      });
+    return () => { cancelled = true; };
+  }, []);
 
   // Load current site status on mount
   useEffect(() => {
@@ -100,12 +110,14 @@ export default function Admin({ onStatusChange }) {
 
   const handleSiteModeChange = async (newMode) => {
     setSiteModeLoading(true);
+    setSiteModeError('');
     try {
       await setSiteStatus(newMode);
       setSiteMode(newMode);
       if (onStatusChange) onStatusChange(newMode);
     } catch (err) {
       console.error('Failed to update site status:', err);
+      setSiteModeError('Could not update site status. Please try again.');
     } finally {
       setSiteModeLoading(false);
     }
@@ -123,20 +135,45 @@ export default function Admin({ onStatusChange }) {
 
   const analytics = computeAnalytics(orders);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      setAuthenticated(true);
-      sessionStorage.setItem(STORAGE_KEY, 'true');
-      setPasswordError('');
-    } else {
-      setPasswordError('Incorrect password');
+    if (signingIn) return;
+    setSigningIn(true);
+    setPasswordError('');
+    try {
+      const res = await fetch('/api/admin-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ password }),
+      });
+      if (res.ok) {
+        setPassword('');
+        setAuthState('authed');
+      } else if (res.status === 429) {
+        setPasswordError('Too many attempts. Please wait a few minutes.');
+      } else if (res.status === 401 || res.status === 400) {
+        setPasswordError('Incorrect password');
+      } else {
+        // Config/transport problems: generic message here, detail in the log.
+        console.error(`Admin login failed with status ${res.status}`);
+        setPasswordError('Admin login is unavailable right now.');
+      }
+    } catch (err) {
+      console.error('Admin login request failed:', err);
+      setPasswordError('Admin login is unavailable right now.');
+    } finally {
+      setSigningIn(false);
     }
   };
 
-  const handleLogout = () => {
-    setAuthenticated(false);
-    sessionStorage.removeItem(STORAGE_KEY);
+  const handleLogout = async () => {
+    setAuthState('anon');
+    try {
+      await fetch('/api/admin-auth', { method: 'DELETE', credentials: 'same-origin' });
+    } catch (err) {
+      console.error('Admin logout request failed:', err);
+    }
   };
 
   // ─── Product handlers ───
@@ -282,6 +319,19 @@ export default function Admin({ onStatusChange }) {
     setOrderEditForm(null);
   };
 
+  // Session not resolved yet — render nothing privileged.
+  if (authState === 'checking') {
+    return (
+      <main className={styles.page}>
+        <div className={styles.loginContainer}>
+          <div className={styles.loginCard}>
+            <p className={styles.loginSubtitle}>Checking access…</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   // Login screen
   if (!authenticated) {
     return (
@@ -298,9 +348,12 @@ export default function Admin({ onStatusChange }) {
                 placeholder="Enter password"
                 className={styles.loginInput}
                 autoFocus
+                autoComplete="current-password"
               />
               {passwordError && <p className={styles.loginError}>{passwordError}</p>}
-              <button type="submit" className={styles.loginBtn}>Sign In</button>
+              <button type="submit" className={styles.loginBtn} disabled={signingIn}>
+                {signingIn ? 'Signing in…' : 'Sign In'}
+              </button>
             </form>
           </div>
         </div>
@@ -913,6 +966,7 @@ export default function Admin({ onStatusChange }) {
               </div>
 
               {siteModeLoading && <p className={styles.statusSaving}>Updating…</p>}
+              {siteModeError && <p className={styles.loginError}>{siteModeError}</p>}
             </div>
           </div>
         )}

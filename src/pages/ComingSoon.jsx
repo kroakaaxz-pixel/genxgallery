@@ -8,7 +8,9 @@ export default function ComingSoon() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (email.trim()) {
-      console.log('Coming soon signup:', email);
+      // No signup backend is wired up yet, so the address is intentionally
+      // discarded rather than logged — logging it would put a customer email
+      // in the browser console.
       setSubmitted(true);
       setEmail('');
     }
