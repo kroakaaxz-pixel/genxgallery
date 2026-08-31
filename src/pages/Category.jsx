@@ -39,7 +39,6 @@ export default function Category() {
   const [dbProducts, setDbProducts] = useState(null);
 
   useEffect(() => {
-    if (!supabase) return;
     fetchProducts()
       .then((data) => { if (data) setDbProducts(data); })
       .catch(() => {});

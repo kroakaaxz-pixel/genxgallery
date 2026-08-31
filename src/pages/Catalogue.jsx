@@ -24,7 +24,6 @@ export default function Catalogue() {
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
-    if (!supabase) return;
     fetchProducts()
       .then((data) => { if (data) setAllProducts(data); })
       .catch(() => {});

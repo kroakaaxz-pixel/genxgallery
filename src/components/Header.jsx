@@ -37,7 +37,6 @@ export default function Header() {
 
   // Fetch products from Supabase for search
   useEffect(() => {
-    if (!supabase) return;
     fetchProducts()
       .then((data) => { if (data) setAllProducts(data); })
       .catch(() => {});

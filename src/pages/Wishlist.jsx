@@ -13,7 +13,7 @@ export default function Wishlist() {
   const [dbProducts, setDbProducts] = useState({});
 
   useEffect(() => {
-    if (!supabase || ids.length === 0) return;
+    if (ids.length === 0) return;
     Promise.all(ids.map((id) => fetchProductById(id)))
       .then((results) => {
         const map = {};

@@ -207,8 +207,12 @@ export default function Admin({ onStatusChange }) {
       }
       handleCancel();
     } catch (err) {
-      console.error('Failed to save product:', err);
-      alert('Failed to save product. Please try again.');
+      console.error('[Admin] Save failed:', err?.message, err?.details, err?.hint, err?.code);
+      if (err?.code === 'PGRST205' || err?.message?.includes('Could not find the table')) {
+        setTableMissing(true);
+      } else {
+        alert(`Failed to save product: ${err?.message || 'Unknown error'}`);
+      }
     }
   };
 
@@ -216,14 +220,15 @@ export default function Admin({ onStatusChange }) {
     if (!window.confirm('Delete this product?')) return;
     try {
       await deleteProductDb(id);
+      // Only update UI after Supabase write succeeds
       setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, isDeleted: true } : p)));
       if (editingId === id) handleCancel();
     } catch (err) {
-      console.error('Failed to delete product:', err);
+      console.error('[Admin] Delete failed:', err?.message, err?.details, err?.hint, err?.code);
       if (err?.code === 'PGRST205' || err?.message?.includes('Could not find the table')) {
         setTableMissing(true);
       } else {
-        alert('Failed to delete product. Please try again.');
+        alert(`Failed to delete product: ${err?.message || 'Unknown error'}`);
       }
     }
   };
@@ -233,8 +238,8 @@ export default function Admin({ onStatusChange }) {
       await restoreProductDb(id);
       setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, isDeleted: false } : p)));
     } catch (err) {
-      console.error('Failed to restore product:', err);
-      alert('Failed to restore product. Please try again.');
+      console.error('[Admin] Restore failed:', err?.message, err?.details, err?.hint, err?.code);
+      alert(`Failed to restore product: ${err?.message || 'Unknown error'}`);
     }
   };
 
@@ -243,8 +248,8 @@ export default function Admin({ onStatusChange }) {
       await updateProduct(id, { status: newStatus });
       setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p)));
     } catch (err) {
-      console.error('Failed to update status:', err);
-      alert('Failed to update status. Please try again.');
+      console.error('[Admin] Status update failed:', err?.message, err?.details, err?.hint, err?.code);
+      alert(`Failed to update status: ${err?.message || 'Unknown error'}`);
     }
   };
 

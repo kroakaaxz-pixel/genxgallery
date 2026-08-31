@@ -58,16 +58,25 @@ function timeAgo(dateStr) {
 export default function ProductDetail() {
   const { id } = useParams();
   const [dbProduct, setDbProduct] = useState(null);
+  const [dbChecked, setDbChecked] = useState(false);
   const staticProduct = getProductById(id);
-  const product = dbProduct || staticProduct;
+  const product = dbChecked ? dbProduct : (dbProduct || staticProduct);
   const { addItem } = useCart();
   const { toggle, has } = useWishlist();
 
   useEffect(() => {
-    if (!supabase) return;
+    let cancelled = false;
     fetchProductById(Number(id))
-      .then((data) => { if (data) setDbProduct(data); })
-      .catch(() => {});
+      .then((data) => {
+        if (!cancelled) {
+          setDbProduct(data);
+          setDbChecked(true);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setDbChecked(true);
+      });
+    return () => { cancelled = true; };
   }, [id]);
 
   const isFramed = product?.category === 'framed-posters';

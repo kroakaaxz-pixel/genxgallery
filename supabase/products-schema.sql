@@ -28,16 +28,26 @@ CREATE INDEX IF NOT EXISTS idx_products_status ON products(status);
 CREATE INDEX IF NOT EXISTS idx_products_is_deleted ON products(is_deleted);
 
 -- ============================================================
--- RLS — Public can read non-deleted active products.
--- Admin writes are handled via service-role or admin session.
+-- RLS — Permissive policies for admin (anon key) and storefront.
 -- ============================================================
 
 ALTER TABLE products ENABLE ROW LEVEL SECURITY;
 
--- Anyone can read non-deleted products (storefront)
-CREATE POLICY "Public can view active products"
+-- SELECT: anyone can read (storefront filters is_deleted at app level)
+CREATE POLICY "Anyone can read products"
   ON products FOR SELECT
-  USING (is_deleted = false);
+  USING (true);
+
+-- INSERT: allow anon to create products (admin panel)
+CREATE POLICY "Anyone can insert products"
+  ON products FOR INSERT
+  WITH CHECK (true);
+
+-- UPDATE: allow anon to update products (admin panel)
+CREATE POLICY "Anyone can update products"
+  ON products FOR UPDATE
+  USING (true)
+  WITH CHECK (true);
 
 -- ============================================================
 -- Seed data — mirrors the original static products array

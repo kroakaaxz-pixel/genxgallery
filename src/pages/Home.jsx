@@ -108,7 +108,6 @@ export default function Home() {
   const [specialDeals, setSpecialDeals] = useState(getSpecialDeals());
 
   useEffect(() => {
-    if (!supabase) return;
     fetchProducts()
       .then((data) => {
         if (!data) return;
