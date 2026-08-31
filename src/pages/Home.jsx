@@ -92,8 +92,8 @@ function Hero() {
       <div className={styles.heroImage}>
         <img
           ref={imageRef}
-          src="https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=900&h=1200&fit=crop"
-          alt="Gallery wall with framed prints"
+          src="/hero.jpg"
+          alt="Gen X Gallery neon-lit poster wall featuring Initial D, Nissan GT-R, Porsche 911, Attack on Titan, Dragon Ball, Akira, Evangelion, Spirited Away, and Your Name prints"
           className={styles.heroImg}
         />
         <span className={styles.heroFigLabel}>Fig. 01 — The Collection</span>
@@ -106,7 +106,7 @@ export default function Home() {
   useHead({
     title: null,
     description: 'Premium framed prints and posters for people who care about what\'s on their walls. Pop culture, automotive, anime, and typographic art — gallery-ready.',
-    image: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=1200&h=630&fit=crop',
+    image: '/hero.jpg',
   });
 
   const featuredRef = useStaggerReveal({ staggerMs: 70, childSelector: `.${styles.featuredItem}` });
