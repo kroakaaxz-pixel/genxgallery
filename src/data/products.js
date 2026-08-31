@@ -374,16 +374,40 @@ export const products = [
   },
 ];
 
-export const getProductById = (id) => products.find((p) => p.id === Number(id) && !p.isDeleted);
+const PRODUCTS_KEY = 'gxg_admin_products';
+
+function getStoredProducts() {
+  try {
+    const raw = sessionStorage.getItem(PRODUCTS_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch { /* ignore */ }
+  return null;
+}
+
+function normalizeProduct(p) {
+  return {
+    ...p,
+    isDeleted: p.isDeleted === true,
+    status: p.status || 'Active',
+  };
+}
+
+export function getProductList() {
+  const stored = getStoredProducts();
+  if (stored) return stored.map(normalizeProduct);
+  return products;
+}
+
+export const getProductById = (id) => getProductList().find((p) => p.id === Number(id) && !p.isDeleted);
 
 export const getActiveProducts = () =>
-  products.filter((p) => p.status === 'Active' && !p.isDeleted);
+  getProductList().filter((p) => p.status === 'Active' && !p.isDeleted);
 
 export const getProductsByCategory = (category) =>
-  products.filter((p) => p.category === category && p.status === 'Active' && !p.isDeleted);
+  getProductList().filter((p) => p.category === category && p.status === 'Active' && !p.isDeleted);
 
 export const getProductsBySubCategory = (category, subCategory) =>
-  products.filter((p) => p.category === category && p.subCategory === subCategory && p.status === 'Active' && !p.isDeleted);
+  getProductList().filter((p) => p.category === category && p.subCategory === subCategory && p.status === 'Active' && !p.isDeleted);
 
 export const getCategoryById = (id) => categories.find((c) => c.id === id);
 
@@ -411,10 +435,10 @@ export const getDiscountedSizePrice = (product, sizeId) => {
 };
 
 export const getNewArrivals = () =>
-  products.filter((p) => p.status === 'Active' && p.isNewArrival && !p.isDeleted);
+  getProductList().filter((p) => p.status === 'Active' && p.isNewArrival && !p.isDeleted);
 
 export const getSpecialDeals = () =>
-  products.filter((p) => p.status === 'Active' && p.isSpecialDeal && !p.isDeleted);
+  getProductList().filter((p) => p.status === 'Active' && p.isSpecialDeal && !p.isDeleted);
 
 // Mock review data — display-only, read-only for now.
 // A real review system would need backend storage and authentication.

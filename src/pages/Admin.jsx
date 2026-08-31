@@ -20,7 +20,14 @@ try { localStorage.removeItem('gxg_deleted_products'); } catch { /* ignore */ }
 function getStoredProducts() {
   try {
     const stored = sessionStorage.getItem(PRODUCTS_KEY);
-    if (stored) return JSON.parse(stored);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return parsed.map((p) => ({
+        ...p,
+        isDeleted: p.isDeleted === true,
+        status: p.status || 'Active',
+      }));
+    }
   } catch { /* ignore */ }
   return null;
 }
@@ -201,10 +208,11 @@ export default function Admin({ onStatusChange }) {
 
   const handleSave = () => {
     if (!formData.name || !formData.price) return;
+    const product = { ...formData, isDeleted: formData.isDeleted === true };
     if (editingId) {
-      setProducts((prev) => prev.map((p) => (p.id === editingId ? { ...formData, id: editingId } : p)));
+      setProducts((prev) => prev.map((p) => (p.id === editingId ? { ...product, id: editingId } : p)));
     } else {
-      setProducts((prev) => [...prev, { ...formData, id: Date.now() }]);
+      setProducts((prev) => [...prev, { ...product, id: Date.now() }]);
     }
     handleCancel();
   };
