@@ -1,7 +1,9 @@
+import { useState, useEffect } from 'react';
 import { useParams, useLocation, Navigate, Link } from 'react-router-dom';
 import { getCategoryById, getProductsBySubCategory, getProductsByCategory, categories, subCategories, getSubCategoryById } from '../data/products';
 import { useHead } from '../hooks/useHead';
 import ProductCard from '../components/ProductCard';
+import { supabase, fetchProducts } from '../lib/supabase';
 import styles from './Category.module.css';
 
 const categoryImages = {
@@ -34,9 +36,19 @@ export default function Category() {
 
   const subCategory = subCategoryId ? getSubCategoryById(subCategoryId) : null;
 
+  const [dbProducts, setDbProducts] = useState(null);
+
+  useEffect(() => {
+    if (!supabase) return;
+    fetchProducts()
+      .then((data) => { if (data) setDbProducts(data); })
+      .catch(() => {});
+  }, []);
+
+  const allActive = dbProducts || getProductsByCategory(categoryId);
   const products = subCategoryId
-    ? getProductsBySubCategory(categoryId, subCategoryId)
-    : getProductsByCategory(categoryId);
+    ? allActive.filter((p) => p.category === categoryId && p.subCategory === subCategoryId)
+    : allActive.filter((p) => p.category === categoryId);
 
   const catIndex = categories.findIndex((c) => c.id === categoryId);
   const heroImage = categoryImages[subCategoryId || categoryId] || categoryImages[categoryId];

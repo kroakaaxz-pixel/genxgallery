@@ -1,18 +1,31 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useWishlist } from '../context/WishlistContext';
 import { getProductById } from '../data/products';
 import { useHead } from '../hooks/useHead';
 import ProductCard from '../components/ProductCard';
+import { supabase, fetchProductById } from '../lib/supabase';
 import styles from './Wishlist.module.css';
 
 export default function Wishlist() {
   useHead({ title: 'Wishlist', description: 'Your saved items at Gen X Gallery.' });
   const { ids } = useWishlist();
+  const [dbProducts, setDbProducts] = useState({});
+
+  useEffect(() => {
+    if (!supabase || ids.length === 0) return;
+    Promise.all(ids.map((id) => fetchProductById(id)))
+      .then((results) => {
+        const map = {};
+        results.forEach((p) => { if (p) map[p.id] = p; });
+        setDbProducts(map);
+      })
+      .catch(() => {});
+  }, [ids]);
 
   const products = useMemo(
-    () => ids.map((id) => getProductById(id)).filter(Boolean),
-    [ids]
+    () => ids.map((id) => dbProducts[id] || getProductById(id)).filter(Boolean),
+    [ids, dbProducts]
   );
 
   return (

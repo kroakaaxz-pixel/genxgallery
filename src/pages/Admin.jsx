@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
-import { products as initialProducts, categories, subCategories, productStatuses, frameSizes, getDiscountedPrice } from '../data/products';
+import { useState, useEffect, useCallback } from 'react';
+import { products as fallbackProducts, categories, subCategories, productStatuses, frameSizes, getDiscountedPrice } from '../data/products';
 import { initialOrders, orderStatuses, computeAnalytics } from '../data/orders';
 import { formatPrice } from '../utils/currency';
-import { supabase, setSiteStatus } from '../lib/supabase';
+import { supabase, setSiteStatus, fetchAllProducts, createProduct, updateProduct, deleteProduct as deleteProductDb, restoreProduct as restoreProductDb } from '../lib/supabase';
 import styles from './Admin.module.css';
 
 import {
@@ -11,32 +11,7 @@ import {
   AreaChart, Area,
 } from 'recharts';
 
-const PRODUCTS_KEY = 'gxg_admin_products';
 const ORDERS_KEY = 'gxg_admin_orders';
-
-// One-time cleanup: remove stale deleted-products key from previous code version.
-try { localStorage.removeItem('gxg_deleted_products'); } catch { /* ignore */ }
-
-function getStoredProducts() {
-  try {
-    const stored = sessionStorage.getItem(PRODUCTS_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      return parsed.map((p) => ({
-        ...p,
-        isDeleted: p.isDeleted === true,
-        status: p.status || 'Active',
-      }));
-    }
-  } catch { /* ignore */ }
-  return null;
-}
-
-function storeProducts(prods) {
-  try {
-    sessionStorage.setItem(PRODUCTS_KEY, JSON.stringify(prods));
-  } catch { /* ignore */ }
-}
 
 function getStoredOrders() {
   try {
@@ -76,7 +51,7 @@ export default function Admin({ onStatusChange }) {
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [signingIn, setSigningIn] = useState(false);
-  const [products, setProducts] = useState(() => getStoredProducts() ?? initialProducts);
+  const [products, setProducts] = useState(fallbackProducts);
   const [orders, setOrders] = useState(() => getStoredOrders() ?? initialOrders);
   const [editingId, setEditingId] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -140,8 +115,15 @@ export default function Admin({ onStatusChange }) {
   const [editingOrder, setEditingOrder] = useState(null);
   const [orderEditForm, setOrderEditForm] = useState(null);
 
-  // Persist to session storage
-  useEffect(() => { storeProducts(products); }, [products]);
+  // Load products from Supabase on mount
+  useEffect(() => {
+    if (!supabase) return;
+    fetchAllProducts()
+      .then((data) => { if (data) setProducts(data); })
+      .catch(() => {});
+  }, []);
+
+  // Persist orders to session storage
   useEffect(() => { storeOrders(orders); }, [orders]);
 
   const analytics = computeAnalytics(orders);
@@ -206,30 +188,55 @@ export default function Admin({ onStatusChange }) {
     setFormData({ ...emptyProduct });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.name || !formData.price) return;
     const product = { ...formData, isDeleted: formData.isDeleted === true };
-    if (editingId) {
-      setProducts((prev) => prev.map((p) => (p.id === editingId ? { ...product, id: editingId } : p)));
-    } else {
-      setProducts((prev) => [...prev, { ...product, id: Date.now() }]);
+    try {
+      if (editingId) {
+        await updateProduct(editingId, product);
+        setProducts((prev) => prev.map((p) => (p.id === editingId ? { ...product, id: editingId } : p)));
+      } else {
+        const newId = Date.now();
+        await createProduct({ ...product, id: newId });
+        setProducts((prev) => [...prev, { ...product, id: newId }]);
+      }
+      handleCancel();
+    } catch (err) {
+      console.error('Failed to save product:', err);
+      alert('Failed to save product. Please try again.');
     }
-    handleCancel();
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm('Delete this product?')) {
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this product?')) return;
+    try {
+      await deleteProductDb(id);
       setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, isDeleted: true } : p)));
       if (editingId === id) handleCancel();
+    } catch (err) {
+      console.error('Failed to delete product:', err);
+      alert('Failed to delete product. Please try again.');
     }
   };
 
-  const handleRestore = (id) => {
-    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, isDeleted: false } : p)));
+  const handleRestore = async (id) => {
+    try {
+      await restoreProductDb(id);
+      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, isDeleted: false } : p)));
+    } catch (err) {
+      console.error('Failed to restore product:', err);
+      alert('Failed to restore product. Please try again.');
+    }
   };
 
-  const handleStatusToggle = (id, newStatus) => {
-    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p)));
+  const handleStatusToggle = async (id, newStatus) => {
+    try {
+      await updateProduct(id, { status: newStatus });
+      setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, status: newStatus } : p)));
+    } catch (err) {
+      console.error('Failed to update status:', err);
+      alert('Failed to update status. Please try again.');
+    }
   };
 
   const handleFieldChange = (field, value) => {

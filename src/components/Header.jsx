@@ -3,17 +3,16 @@ import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useAuth } from '../context/AuthContext';
-import { signInWithGoogle, signOut } from '../lib/supabase';
+import { signInWithGoogle, signOut, supabase, fetchProducts } from '../lib/supabase';
 import { getActiveProducts, categories, subCategories } from '../data/products';
 import logoUrl from '../assets/logo.svg';
 import styles from './Header.module.css';
-
-const allProducts = getActiveProducts();
 
 export default function Header() {
   const { totalItems } = useCart();
   const { count: wishlistCount } = useWishlist();
   const { user } = useAuth();
+  const [allProducts, setAllProducts] = useState(getActiveProducts());
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileExpanded, setMobileExpanded] = useState(null);
@@ -35,6 +34,14 @@ export default function Header() {
     setQuery('');
     setUserMenuOpen(false);
   }, [location]);
+
+  // Fetch products from Supabase for search
+  useEffect(() => {
+    if (!supabase) return;
+    fetchProducts()
+      .then((data) => { if (data) setAllProducts(data); })
+      .catch(() => {});
+  }, []);
 
   // Close on tap outside
   useEffect(() => {

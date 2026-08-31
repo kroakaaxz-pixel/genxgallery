@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { getActiveProducts, getNewArrivals, getSpecialDeals, categories, subCategories, getDiscountedPrice } from '../data/products';
 import { formatPrice } from '../utils/currency';
@@ -7,14 +7,8 @@ import { useReveal, useStaggerReveal } from '../hooks/useReveal';
 import ProductCard from '../components/ProductCard';
 import ProductCarousel from '../components/ProductCarousel';
 import FadeImage from '../components/FadeImage';
+import { supabase, fetchProducts } from '../lib/supabase';
 import styles from './Home.module.css';
-
-const allProducts = getActiveProducts();
-const featuredProducts = allProducts.filter((p) =>
-  [1, 5, 9, 11].includes(p.id)
-);
-const newArrivals = getNewArrivals();
-const specialDeals = getSpecialDeals();
 
 const prefersReducedMotion = typeof window !== 'undefined'
   && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -108,6 +102,26 @@ export default function Home() {
     description: 'Premium framed prints and posters for people who care about what\'s on their walls. Pop culture, automotive, anime, and typographic art — gallery-ready.',
     image: '/hero.jpg',
   });
+
+  const [allProducts, setAllProducts] = useState(getActiveProducts());
+  const [newArrivals, setNewArrivals] = useState(getNewArrivals());
+  const [specialDeals, setSpecialDeals] = useState(getSpecialDeals());
+
+  useEffect(() => {
+    if (!supabase) return;
+    fetchProducts()
+      .then((data) => {
+        if (!data) return;
+        setAllProducts(data.filter((p) => p.status === 'Active'));
+        setNewArrivals(data.filter((p) => p.status === 'Active' && p.isNewArrival));
+        setSpecialDeals(data.filter((p) => p.status === 'Active' && p.isSpecialDeal));
+      })
+      .catch(() => {});
+  }, []);
+
+  const featuredProducts = allProducts.filter((p) =>
+    [1, 5, 9, 11].includes(p.id)
+  );
 
   const featuredRef = useStaggerReveal({ staggerMs: 70, childSelector: `.${styles.featuredItem}` });
   const newArrivalsRef = useReveal();

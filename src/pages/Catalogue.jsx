@@ -1,10 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { getActiveProducts, categories, subCategories } from '../data/products';
 import { useHead } from '../hooks/useHead';
 import ProductCard from '../components/ProductCard';
+import { supabase, fetchProducts } from '../lib/supabase';
 import styles from './Catalogue.module.css';
-
-const allProducts = getActiveProducts();
 
 const sortOptions = [
   { value: 'featured', label: 'Featured' },
@@ -18,10 +17,18 @@ export default function Catalogue() {
     title: 'Catalogue',
     description: 'Browse the full Gen X Gallery collection — framed posters, unframed prints, and custom frames across anime, cars, bikes, and more.',
   });
+  const [allProducts, setAllProducts] = useState(getActiveProducts());
   const [catFilter, setCatFilter] = useState('all');
   const [subFilter, setSubFilter] = useState('all');
   const [sort, setSort] = useState('featured');
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  useEffect(() => {
+    if (!supabase) return;
+    fetchProducts()
+      .then((data) => { if (data) setAllProducts(data); })
+      .catch(() => {});
+  }, []);
 
   const filtered = useMemo(() => {
     let items = [...allProducts];

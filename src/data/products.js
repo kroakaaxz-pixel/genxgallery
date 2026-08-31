@@ -374,40 +374,21 @@ export const products = [
   },
 ];
 
-const PRODUCTS_KEY = 'gxg_admin_products';
+// Static fallback used when Supabase is not configured or before DB fetch completes.
+// Admin mutations write to Supabase; these functions read the static array as a
+// safety net. Once the products table is seeded via supabase/products-schema.sql
+// the storefront fetches from Supabase directly.
 
-function getStoredProducts() {
-  try {
-    const raw = sessionStorage.getItem(PRODUCTS_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch { /* ignore */ }
-  return null;
-}
-
-function normalizeProduct(p) {
-  return {
-    ...p,
-    isDeleted: p.isDeleted === true,
-    status: p.status || 'Active',
-  };
-}
-
-export function getProductList() {
-  const stored = getStoredProducts();
-  if (stored) return stored.map(normalizeProduct);
-  return products;
-}
-
-export const getProductById = (id) => getProductList().find((p) => p.id === Number(id) && !p.isDeleted);
+export const getProductById = (id) => products.find((p) => p.id === Number(id));
 
 export const getActiveProducts = () =>
-  getProductList().filter((p) => p.status === 'Active' && !p.isDeleted);
+  products.filter((p) => p.status === 'Active');
 
 export const getProductsByCategory = (category) =>
-  getProductList().filter((p) => p.category === category && p.status === 'Active' && !p.isDeleted);
+  products.filter((p) => p.category === category && p.status === 'Active');
 
 export const getProductsBySubCategory = (category, subCategory) =>
-  getProductList().filter((p) => p.category === category && p.subCategory === subCategory && p.status === 'Active' && !p.isDeleted);
+  products.filter((p) => p.category === category && p.subCategory === subCategory && p.status === 'Active');
 
 export const getCategoryById = (id) => categories.find((c) => c.id === id);
 
@@ -435,10 +416,10 @@ export const getDiscountedSizePrice = (product, sizeId) => {
 };
 
 export const getNewArrivals = () =>
-  getProductList().filter((p) => p.status === 'Active' && p.isNewArrival && !p.isDeleted);
+  products.filter((p) => p.status === 'Active' && p.isNewArrival);
 
 export const getSpecialDeals = () =>
-  getProductList().filter((p) => p.status === 'Active' && p.isSpecialDeal && !p.isDeleted);
+  products.filter((p) => p.status === 'Active' && p.isSpecialDeal);
 
 // Mock review data — display-only, read-only for now.
 // A real review system would need backend storage and authentication.

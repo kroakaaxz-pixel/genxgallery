@@ -181,3 +181,118 @@ export async function setSiteStatus(mode) {
     .upsert({ id: 1, mode }, { onConflict: 'id' });
   if (error) throw error;
 }
+
+// ── Product helpers ──────────────────────────────────────────
+
+function dbToProduct(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    category: row.category,
+    subCategory: row.sub_category,
+    description: row.description,
+    price: Number(row.price),
+    discountPercent: Number(row.discount_percent),
+    sizes: row.sizes,
+    image: row.image,
+    badge: row.badge,
+    naturalRatio: Number(row.natural_ratio),
+    status: row.status,
+    isDeleted: row.is_deleted,
+    isNewArrival: row.is_new_arrival,
+    isSpecialDeal: row.is_special_deal,
+  };
+}
+
+function productToDb(p) {
+  return {
+    id: p.id,
+    name: p.name,
+    category: p.category,
+    sub_category: p.subCategory,
+    description: p.description,
+    price: p.price,
+    discount_percent: p.discountPercent,
+    sizes: p.sizes,
+    image: p.image,
+    badge: p.badge || '',
+    natural_ratio: p.naturalRatio || 0.75,
+    status: p.status || 'Active',
+    is_deleted: p.isDeleted === true,
+    is_new_arrival: p.isNewArrival === true,
+    is_special_deal: p.isSpecialDeal === true,
+  };
+}
+
+export async function fetchProducts() {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .eq('is_deleted', false)
+    .order('id');
+  if (error) throw error;
+  return (data || []).map(dbToProduct);
+}
+
+export async function fetchAllProducts() {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .order('id');
+  if (error) throw error;
+  return (data || []).map(dbToProduct);
+}
+
+export async function fetchProductById(id) {
+  if (!supabase) return null;
+  const { data, error } = await supabase
+    .from('products')
+    .select('*')
+    .eq('id', id)
+    .eq('is_deleted', false)
+    .single();
+  if (error || !data) return null;
+  return dbToProduct(data);
+}
+
+export async function createProduct(product) {
+  if (!supabase) throw new Error('Supabase not configured');
+  const { error } = await supabase
+    .from('products')
+    .insert(productToDb(product));
+  if (error) throw error;
+}
+
+export async function updateProduct(id, updates) {
+  if (!supabase) throw new Error('Supabase not configured');
+  const dbUpdates = {};
+  if (updates.name !== undefined) dbUpdates.name = updates.name;
+  if (updates.category !== undefined) dbUpdates.category = updates.category;
+  if (updates.subCategory !== undefined) dbUpdates.sub_category = updates.subCategory;
+  if (updates.description !== undefined) dbUpdates.description = updates.description;
+  if (updates.price !== undefined) dbUpdates.price = updates.price;
+  if (updates.discountPercent !== undefined) dbUpdates.discount_percent = updates.discountPercent;
+  if (updates.sizes !== undefined) dbUpdates.sizes = updates.sizes;
+  if (updates.image !== undefined) dbUpdates.image = updates.image;
+  if (updates.badge !== undefined) dbUpdates.badge = updates.badge;
+  if (updates.naturalRatio !== undefined) dbUpdates.natural_ratio = updates.naturalRatio;
+  if (updates.status !== undefined) dbUpdates.status = updates.status;
+  if (updates.isDeleted !== undefined) dbUpdates.is_deleted = updates.isDeleted;
+  if (updates.isNewArrival !== undefined) dbUpdates.is_new_arrival = updates.isNewArrival;
+  if (updates.isSpecialDeal !== undefined) dbUpdates.is_special_deal = updates.isSpecialDeal;
+  const { error } = await supabase
+    .from('products')
+    .update(dbUpdates)
+    .eq('id', id);
+  if (error) throw error;
+}
+
+export async function deleteProduct(id) {
+  return updateProduct(id, { isDeleted: true });
+}
+
+export async function restoreProduct(id) {
+  return updateProduct(id, { isDeleted: false });
+}

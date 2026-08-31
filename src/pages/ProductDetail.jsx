@@ -6,6 +6,7 @@ import { useWishlist } from '../context/WishlistContext';
 import { formatPrice } from '../utils/currency';
 import { useHead } from '../hooks/useHead';
 import ProductCarousel from '../components/ProductCarousel';
+import { supabase, fetchProductById } from '../lib/supabase';
 import styles from './ProductDetail.module.css';
 
 const RECENTLY_VIEWED_KEY = 'gxg_recently_viewed';
@@ -56,9 +57,18 @@ function timeAgo(dateStr) {
 
 export default function ProductDetail() {
   const { id } = useParams();
-  const product = getProductById(id);
+  const [dbProduct, setDbProduct] = useState(null);
+  const staticProduct = getProductById(id);
+  const product = dbProduct || staticProduct;
   const { addItem } = useCart();
   const { toggle, has } = useWishlist();
+
+  useEffect(() => {
+    if (!supabase) return;
+    fetchProductById(Number(id))
+      .then((data) => { if (data) setDbProduct(data); })
+      .catch(() => {});
+  }, [id]);
 
   const isFramed = product?.category === 'framed-posters';
   const sizes = isFramed ? frameSizes : posterSizes;
