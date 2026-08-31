@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
 import { getAddresses, addAddress, insertOrder } from '../lib/supabase';
 import { formatPrice, gstBreakdown } from '../utils/currency';
 import { calculateShipping } from '../utils/shipping';
