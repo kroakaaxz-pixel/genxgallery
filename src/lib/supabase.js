@@ -231,7 +231,10 @@ export async function fetchProducts() {
     .select('*')
     .eq('is_deleted', false)
     .order('id');
-  if (error) throw error;
+  if (error) {
+    console.error('[Supabase] fetchProducts failed:', error.message, error.details, error.hint);
+    throw error;
+  }
   return (data || []).map(dbToProduct);
 }
 
@@ -241,7 +244,10 @@ export async function fetchAllProducts() {
     .from('products')
     .select('*')
     .order('id');
-  if (error) throw error;
+  if (error) {
+    console.error('[Supabase] fetchAllProducts failed:', error.message, error.details, error.hint);
+    throw error;
+  }
   return (data || []).map(dbToProduct);
 }
 
@@ -259,10 +265,15 @@ export async function fetchProductById(id) {
 
 export async function createProduct(product) {
   if (!supabase) throw new Error('Supabase not configured');
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('products')
-    .insert(productToDb(product));
-  if (error) throw error;
+    .insert(productToDb(product))
+    .select();
+  if (error) {
+    console.error('[Supabase] createProduct failed:', error.message, error.details, error.hint);
+    throw error;
+  }
+  return data;
 }
 
 export async function updateProduct(id, updates) {
@@ -282,11 +293,17 @@ export async function updateProduct(id, updates) {
   if (updates.isDeleted !== undefined) dbUpdates.is_deleted = updates.isDeleted;
   if (updates.isNewArrival !== undefined) dbUpdates.is_new_arrival = updates.isNewArrival;
   if (updates.isSpecialDeal !== undefined) dbUpdates.is_special_deal = updates.isSpecialDeal;
-  const { error } = await supabase
+  const numId = Number(id);
+  const { data, error } = await supabase
     .from('products')
     .update(dbUpdates)
-    .eq('id', id);
-  if (error) throw error;
+    .eq('id', numId)
+    .select();
+  if (error) {
+    console.error('[Supabase] updateProduct failed:', error.message, error.details, error.hint);
+    throw error;
+  }
+  return data;
 }
 
 export async function deleteProduct(id) {
