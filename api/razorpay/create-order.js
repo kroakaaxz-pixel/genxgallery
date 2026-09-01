@@ -1,4 +1,5 @@
 import crypto from 'node:crypto';
+import Razorpay from 'razorpay';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -24,7 +25,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    var razorpay = new (require('razorpay'))({
+    var razorpay = new Razorpay({
       key_id: razorPayKeyId,
       key_secret: razorPayKeySecret,
     });
