@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useNavigate } from 'react';
 import { useParams, Navigate, Link } from 'react-router-dom';
 import { getProductById, frameSizes, frameMaterials, posterSizes, getSizePrice, getPosterSizePrice, getDiscountedSizePrice, getDiscountedPrice, getReviewsForProduct } from '../data/products';
 import { useCart } from '../context/CartContext';
