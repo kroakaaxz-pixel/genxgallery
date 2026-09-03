@@ -193,19 +193,33 @@ export default async function handler(req, res) {
 
   // Cookie is valid — proceed with site status upsert using service role key
   try {
-    if (!supabase) throw new Error('Supabase not configured');
+    if (!supabase) {
+      console.error(
+        '[admin-site-status] Supabase client not initialized — check VITE_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY'
+      );
+      return res.status(500).json({ error: 'Server configuration error' });
+    }
     const { data, error } = await supabase
       .from('site_status')
       .upsert({ id: 1, mode: submittedMode }, { onConflict: 'id' });
 
     if (error) {
-      console.error('[admin-site-status] Supabase upsert error:', error);
+      console.error(
+        '[admin-site-status] Supabase upsert error:',
+        error.message,
+        error.detail,
+        error.hint
+      );
       return res.status(500).json({ error: 'Failed to update site status' });
     }
 
     return res.status(200).json({ mode: submittedMode, success: true });
   } catch (err) {
-    console.error('[admin-site-status] Unexpected error:', err);
+    console.error(
+      '[admin-site-status] Unexpected error:',
+      err.message,
+      err.stack
+    );
     return res.status(500).json({ error: 'Internal server error' });
   }
 }
