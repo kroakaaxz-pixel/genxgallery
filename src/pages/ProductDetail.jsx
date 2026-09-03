@@ -64,6 +64,8 @@ export default function ProductDetail() {
   const { addItem } = useCart();
   const { toggle, has } = useWishlist();
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     let cancelled = false;
     fetchProductById(Number(id))
@@ -238,7 +240,6 @@ export default function ProductDetail() {
               {isFramed && (
                 <button
                   onClick={() => {
-                    const navigate = useNavigate();
                     navigate(
                       '/customize?image=' +
                         encodeURIComponent(product.image || '') +
