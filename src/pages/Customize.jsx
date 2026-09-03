@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo, useLocation } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { frameSizes, frameMaterials, textures, getSizePrice } from '../data/products';
 import { useCart } from '../context/CartContext';
@@ -28,6 +28,9 @@ export default function Customize() {
   const [customImage, setCustomImage] = useState(null);
   const [uploadedNatural, setUploadedNatural] = useState(null);
   const [selectedSize, setSelectedSize] = useState('a4');
+  const [selectedMaterial, setSelectedMaterial] = useState('black');
+  const [selectedTexture, setSelectedTexture] = useState('matte');
+  const [uploadError, setUploadError] = useState(null);
 
   const previewImage = customImage;
 
