@@ -239,16 +239,7 @@ export default function ProductDetail() {
                 <button
                   onClick={() => {
                     const navigate = useNavigate();
-                    navigate(
-                      '/customize?imageUrl=' +
-                        encodeURIComponent(product.image || '') +
-                        '&productId=' +
-                        product.id +
-                        '&selectedSize=' +
-                        selectedSize +
-                        '&selectedMaterial=' +
-                        selectedMaterial
-                    );
+                    navigate('/customize');
                   }}
                   className={styles.customizeBtn}
                 >

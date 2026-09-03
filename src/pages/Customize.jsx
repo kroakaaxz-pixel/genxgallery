@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo, useLocation, useSearchParams } from 'react';
+import { useState, useRef, useCallback, useMemo, useLocation } from 'react';
 import { Link } from 'react-router-dom';
 import { frameSizes, frameMaterials, textures, getSizePrice } from '../data/products';
 import { useCart } from '../context/CartContext';
@@ -23,27 +23,11 @@ function getCoverFit(sourceW, sourceH, frameW, frameH) {
 export default function Customize() {
   const { addItem } = useCart();
   const fileInputRef = useRef(null);
-  const [searchParams, setSearchParams] = useSearchParams();
   useHead({ title: 'Custom Frame', description: 'Design your own custom frame at Gen X Gallery. Choose your print, frame material, size, and finish.' });
 
   const [customImage, setCustomImage] = useState(null);
   const [uploadedNatural, setUploadedNatural] = useState(null);
   const [selectedSize, setSelectedSize] = useState('a4');
-  const [selectedMaterial, setSelectedMaterial] = useState('black');
-  const [selectedTexture, setSelectedTexture] = useState('matte');
-  const [uploadError, setUploadError] = useState(null);
-
-  // Populate from URL search params if available
-  const imageUrl = searchParams.get('imageUrl') || '';
-  const urlProductId = searchParams.get('productId') || '';
-  const urlSelectedSize = searchParams.get('selectedSize') || '';
-  const urlSelectedMaterial = searchParams.get('selectedMaterial') || '';
-
-  if (imageUrl && urlProductId) {
-    setCustomImage(imageUrl);
-    setSelectedSize(urlSelectedSize || 'a4');
-    setSelectedMaterial(urlSelectedMaterial || 'black');
-  }
 
   const previewImage = customImage;
 
