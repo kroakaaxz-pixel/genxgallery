@@ -138,8 +138,9 @@ const supabase = supabaseUrl && supabaseServiceKey
 export default async function handler(req, res) {
   const password = process.env.ADMIN_PASSWORD;
   const secret = process.env.ADMIN_SESSION_SECRET;
-  const missing = [!!password && 'ADMIN_PASSWORD', !!secret && 'ADMIN_SESSION_SECRET']
-    .filter(Boolean);
+  const missing = [];
+  if (!password) missing.push('ADMIN_PASSWORD');
+  if (!secret) missing.push('ADMIN_SESSION_SECRET');
 
   // ── Log out ──────────────────────────────────────────────────
   if (req.method === 'DELETE') {
