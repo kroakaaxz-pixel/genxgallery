@@ -237,7 +237,7 @@ export default function Cart() {
        };
 
       const rzp = new (window.Razorpay || {})({
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,,
+        key: "rzp_test_TWlEmVVy5oiHBL",
         amount: razorData.amount,
         currency: razorData.currency,
         name: 'Gen X Gallery',
