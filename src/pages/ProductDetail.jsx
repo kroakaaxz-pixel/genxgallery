@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Navigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Navigate, Link } from 'react-router-dom';
 import { getProductById, frameSizes, frameMaterials, posterSizes, getSizePrice, getPosterSizePrice, getDiscountedSizePrice, getDiscountedPrice, getReviewsForProduct } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -236,9 +236,23 @@ export default function ProductDetail() {
                 Add to Cart — {formatPrice(currentPrice)}
               </button>
               {isFramed && (
-                <Link to="/customize" className={styles.customizeBtn}>
+                <button
+                  onClick={() => {
+                    const navigate = useNavigate();
+                    const productData = {
+                      id: product.id,
+                      image: product.image,
+                      name: product.name,
+                      category: product.category,
+                      selectedSize: selectedSize,
+                      selectedMaterial: selectedMaterial,
+                    };
+                    navigate('/customize', { state: { product: productData } });
+                  }}
+                  className={styles.customizeBtn}
+                >
                   Customize
-                </Link>
+                </button>
               )}
             </div>
 
