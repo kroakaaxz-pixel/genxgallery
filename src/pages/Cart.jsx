@@ -97,6 +97,7 @@ export default function Cart() {
   const [state, setState] = useState('');
   const [pincode, setPincode] = useState('');
   const [saveAddress, setSaveAddress] = useState(false);
+  const [saveForNextTime, setSaveForNextTime] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderId, setOrderId] = useState(null);
   const [sending, setSending] = useState(false);
@@ -127,6 +128,20 @@ export default function Cart() {
     // Ensure Razorpay CDN script is loaded once
     ensureRazorpayScript();
     setRazorpayReady(true);
+  }, []);
+
+  // Restore saved address form data from localStorage on page mount
+  useEffect(() => {
+    const saved = localStorage.getItem('savedAddress');
+    if (saved) {
+      const data = JSON.parse(saved);
+      setName(data.name);
+      setEmail(data.email);
+      setPhone(data.phone);
+      setHouseNo(data.houseNo);
+      setStreet(data.street);
+      setPincode(data.pincode);
+    }
   }, []);
 
   const validate = () => {
@@ -163,7 +178,19 @@ export default function Cart() {
     const id = `GXG-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
     const address = buildAddress();
 
-    // 1. Persist the order to Supabase (status: 'placed')
+    // 1. Save address data to localStorage if 'Save for next time' is checked
+    if (saveForNextTime) {
+      localStorage.setItem('savedAddress', JSON.stringify({
+        name,
+        email,
+        phone,
+        houseNo,
+        street,
+        pincode,
+      }));
+    }
+
+    // 2. Persist the order to Supabase (status: 'placed')
     try {
       const orderItems = items.map((item) => ({
         name: item.product?.name || item.name,
@@ -431,15 +458,26 @@ export default function Cart() {
                 </select>
               </FormField>
               {user && (
-                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--color-ink-light)', cursor: 'pointer', marginTop: '4px' }}>
-                  <input
-                    type="checkbox"
-                    checked={saveAddress}
-                    onChange={(e) => setSaveAddress(e.target.checked)}
-                    style={{ width: '16px', height: '16px', accentColor: 'var(--color-accent)' }}
-                  />
-                  Save this address for future orders
-                </label>
+                <>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--color-ink-light)', cursor: 'pointer', marginTop: '4px' }}>
+                    <input
+                      type="checkbox"
+                      checked={saveAddress}
+                      onChange={(e) => setSaveAddress(e.target.checked)}
+                      style={{ width: '16px', height: '16px', accentColor: 'var(--color-accent)' }}
+                    />
+                    Save this address for future orders
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem', color: 'var(--color-ink-light)', cursor: 'pointer', marginTop: '4px' }}>
+                    <input
+                      type="checkbox"
+                      checked={saveForNextTime}
+                      onChange={(e) => setSaveForNextTime(e.target.checked)}
+                      style={{ width: '16px', height: '16px', accentColor: 'var(--color-accent)' }}
+                    />
+                    Save this information for next time
+                  </label>
+                </>
               )}
 
               {/* Razorpay payment section — shown only when Razorpay is ready */}
