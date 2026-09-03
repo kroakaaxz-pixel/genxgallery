@@ -239,15 +239,16 @@ export default function ProductDetail() {
                 <button
                   onClick={() => {
                     const navigate = useNavigate();
-                    const productData = {
-                      id: product.id,
-                      image: product.image,
-                      name: product.name,
-                      category: product.category,
-                      selectedSize: selectedSize,
-                      selectedMaterial: selectedMaterial,
-                    };
-                    navigate('/customize', { state: { product: productData } });
+                    navigate(
+                      '/customize?imageUrl=' +
+                        encodeURIComponent(product.image || '') +
+                        '&productId=' +
+                        product.id +
+                        '&selectedSize=' +
+                        selectedSize +
+                        '&selectedMaterial=' +
+                        selectedMaterial
+                    );
                   }}
                   className={styles.customizeBtn}
                 >
