@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback, useMemo, useLocation } from 'react';
 import { Link } from 'react-router-dom';
 import { frameSizes, frameMaterials, textures, getSizePrice } from '../data/products';
 import { useCart } from '../context/CartContext';
@@ -21,6 +21,7 @@ function getCoverFit(sourceW, sourceH, frameW, frameH) {
 }
 
 export default function Customize() {
+  const location = useLocation();
   const { addItem } = useCart();
   const fileInputRef = useRef(null);
   useHead({ title: 'Custom Frame', description: 'Design your own custom frame at Gen X Gallery. Choose your print, frame material, size, and finish.' });
@@ -31,6 +32,12 @@ export default function Customize() {
   const [selectedMaterial, setSelectedMaterial] = useState('black');
   const [selectedTexture, setSelectedTexture] = useState('matte');
   const [uploadError, setUploadError] = useState(null);
+
+  // Populate from product page state if available
+  const productFromState = location.state?.product;
+  if (productFromState) {
+    setCustomImage(productFromState.image || null);
+  }
 
   const previewImage = customImage;
 

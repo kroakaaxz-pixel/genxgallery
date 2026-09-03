@@ -236,9 +236,20 @@ export default function ProductDetail() {
                 Add to Cart — {formatPrice(currentPrice)}
               </button>
               {isFramed && (
-                <Link to="/customize" className={styles.customizeBtn}>
-                  Customize
-                </Link>
+                <button
+                  onClick={() => {
+                    const navigate = useNavigate();
+                    const productData = {
+                      id: product.id,
+                      image: product.image,
+                      name: product.name,
+                    };
+                    navigate('/customize', { state: { product: productData } });
+                  }}
+                  className={styles.customizeBtn}
+                >
+                    Customize
+                  </button>
               )}
             </div>
 
