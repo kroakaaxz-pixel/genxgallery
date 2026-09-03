@@ -60,12 +60,17 @@ export function onAuthStateChange(callback) {
 
 export async function getProfile(userId) {
   if (!supabase) return null;
-  const { data } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', userId)
-    .single();
-  return data;
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+    if (error) return null;
+    return data;
+  } catch {
+    return null;
+  }
 }
 
 // ── Address helpers ───────────────────────────────────────────
