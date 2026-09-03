@@ -33,12 +33,14 @@ export default function Customize() {
   const [uploadError, setUploadError] = useState(null);
 
   // Read image URL from query parameters using native URLSearchParams
-  const queryParams = new URLSearchParams(window.location.search);
-  const imageUrl = queryParams.get('image') || '';
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const imageUrl = queryParams.get('image') || '';
 
-  if (imageUrl) {
-    setCustomImage(imageUrl);
-  }
+    if (imageUrl) {
+      setCustomImage(imageUrl);
+    }
+  }, []);
 
   const previewImage = customImage;
 
