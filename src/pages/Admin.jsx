@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { products as fallbackProducts, categories, subCategories, productStatuses, frameSizes, getDiscountedPrice } from '../data/products';
 import { initialOrders, orderStatuses, computeAnalytics } from '../data/orders';
 import { formatPrice } from '../utils/currency';
-import { supabase, setSiteStatus, fetchAllProducts, createProduct, updateProduct, deleteProduct as deleteProductDb, restoreProduct as restoreProductDb } from '../lib/supabase';
+import { supabase, fetchAllProducts, createProduct, updateProduct, deleteProduct as deleteProductDb, restoreProduct as restoreProductDb } from '../lib/supabase';
 import styles from './Admin.module.css';
 
 import {
@@ -98,9 +98,19 @@ export default function Admin({ onStatusChange }) {
     setSiteModeLoading(true);
     setSiteModeError('');
     try {
-      await setSiteStatus(newMode);
-      setSiteMode(newMode);
-      if (onStatusChange) onStatusChange(newMode);
+      const res = await fetch('/api/admin-site-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mode: newMode }),
+        credentials: 'same-origin',
+      });
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Could not update site status');
+      }
+      const data = await res.json();
+      setSiteMode(data.mode);
+      if (onStatusChange) onStatusChange(data.mode);
     } catch (err) {
       console.error('Failed to update site status:', err);
       setSiteModeError('Could not update site status. Please try again.');
