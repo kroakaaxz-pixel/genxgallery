@@ -239,12 +239,12 @@ export default function ProductDetail() {
                 <button
                   onClick={() => {
                     const navigate = useNavigate();
-                    const productData = {
-                      id: product.id,
-                      image: product.image,
-                      name: product.name,
-                    };
-                    navigate('/customize', { state: { product: productData } });
+                    navigate(
+                      '/customize?image=' +
+                        encodeURIComponent(product.image || '') +
+                        '&id=' +
+                        encodeURIComponent(product.id)
+                    );
                   }}
                   className={styles.customizeBtn}
                 >
