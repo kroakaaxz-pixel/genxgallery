@@ -47,6 +47,8 @@ function PageTransition({ children }) {
 
 function SiteStatusGate({ mode, children }) {
   const { pathname } = useLocation();
+  // DEBUG: Log siteMode and pathname on every render
+  console.log('[SiteStatusGate check]', { siteMode: mode, pathname });
   const isAdmin = pathname.startsWith('/admin');
 
   // Admin always accessible
