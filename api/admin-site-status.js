@@ -121,6 +121,12 @@ function cookieHeader(value, maxAge, req) {
 const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+// ✏️ DEBUG: Log env var presence (true/only — never the actual secret values)
+console.log('[admin-site-status] Env vars check:', {
+  VITE_SUPABASE_URL: !!supabaseUrl,
+  SUPABASE_SERVICE_ROLE_KEY: !!supabaseServiceKey,
+});
+
 if (!supabaseUrl || !supabaseServiceKey) {
   console.error(
     '[admin-site-status] SUPABASE_SERVICE_ROLE_KEY missing — site status writes disabled.'
