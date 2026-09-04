@@ -144,6 +144,13 @@ const supabase = supabaseUrl && supabaseServiceKey
 export default async function handler(req, res) {
   const password = process.env.ADMIN_PASSWORD;
   const secret = process.env.ADMIN_SESSION_SECRET;
+
+// ✏️ DEBUG: Log env var presence (true/false only — never the actual secret values)
+  console.log('[admin-site-status] Admin auth env vars check:', {
+    ADMIN_PASSWORD: !!password,
+    ADMIN_SESSION_SECRET: !!secret,
+  });
+
   const missing = [];
   if (!password) missing.push('ADMIN_PASSWORD');
   if (!secret) missing.push('ADMIN_SESSION_SECRET');
