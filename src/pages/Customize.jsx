@@ -175,8 +175,6 @@ export default function Customize() {
   const ratioDiff = Math.abs(sourceRatio - frameRatio);
   const isSignificantCrop = ratioDiff > 0.35;
 
-  const { cropped } = getCoverFit(sourceRatio * 100, 100, frameRatio * 100, 100);
-
   return (
     <main className={styles.page}>
       <div className="container">

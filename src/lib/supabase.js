@@ -171,8 +171,9 @@ export async function getSiteStatus() {
       .from('site_status')
       .select('mode')
       .eq('id', 1)
-      .single();
-    if (error || !data) return 'live';
+      .maybeSingle();
+    if (error) return 'live';
+    if (!data) return 'live'; // default if no row exists
     return data.mode || 'live';
   } catch {
     return 'live';

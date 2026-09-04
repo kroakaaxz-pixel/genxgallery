@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, Navigate, Link, useNavigate } from 'react-router-dom';
-import { getProductById, frameSizes, frameMaterials, posterSizes, getSizePrice, getPosterSizePrice, getDiscountedSizePrice, getDiscountedPrice, getReviewsForProduct } from '../data/products';
+import { getProductById, frameSizes, frameMaterials, posterSizes, getSizePrice, getPosterSizePrice, getDiscountedSizePrice, getReviewsForProduct } from '../data/products';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { formatPrice } from '../utils/currency';
 import { useHead } from '../hooks/useHead';
 import ProductCarousel from '../components/ProductCarousel';
-import { supabase, fetchProductById } from '../lib/supabase';
+import { fetchProductById } from '../lib/supabase';
 import styles from './ProductDetail.module.css';
 
 const RECENTLY_VIEWED_KEY = 'gxg_recently_viewed';
