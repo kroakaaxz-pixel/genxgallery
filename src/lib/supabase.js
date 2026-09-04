@@ -172,10 +172,13 @@ export async function getSiteStatus() {
       .select('mode')
       .eq('id', 1)
       .maybeSingle();
+    // DEBUG: Log raw Supabase response
+    console.log('[getSiteStatus] raw response:', { data, error });
     if (error) return 'live';
     if (!data) return 'live'; // default if no row exists
     return data.mode || 'live';
   } catch {
+    console.log('[getSiteStatus] catch block, error:', error);
     return 'live';
   }
 }
